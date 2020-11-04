@@ -1,0 +1,2 @@
+ipconfig
+node app
