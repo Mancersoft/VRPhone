@@ -16,12 +16,15 @@
 
 package fr.pchab.androidrtc;
 
+import android.content.Context;
 import android.util.Log;
 
+import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.socketio.client.IO;
+import com.github.nkzawa.socketio.client.Socket;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.webrtc.AudioSource;
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
 import org.webrtc.MediaConstraints;
@@ -39,13 +42,6 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-
-import android.content.Context;
-
-import com.github.nkzawa.emitter.Emitter;
-import com.github.nkzawa.socketio.client.IO;
-import com.github.nkzawa.socketio.client.Socket;
-
 public class WebRtcClient {
 
     public static final String VIDEO_TRACK_ID = "ARDAMSv0";
@@ -58,22 +54,16 @@ public class WebRtcClient {
     private PeerConnectionClient.PeerConnectionParameters mPeerConnParams;
     private MediaConstraints mPeerConnConstraints = new MediaConstraints();
     private MediaStream mLocalMediaStream;
-    private VideoSource mVideoSource;
     private RtcListener mListener;
     private Socket mSocket;
     VideoCapturer videoCapturer;
     MessageHandler messageHandler = new MessageHandler();
-    Context mContext;
 
     /**
      * Implement this interface to be notified of events.
      */
     public interface RtcListener {
         void onReady(String remoteId);
-
-        void onCall(String applicant);
-
-        void onHandup();
 
         void onStatusChanged(String newStatus);
     }
@@ -83,7 +73,7 @@ public class WebRtcClient {
     }
 
     public class CreateOfferCommand implements Command {
-        public void execute(String peerId, JSONObject payload) throws JSONException {
+        public void execute(String peerId, JSONObject payload) { // throws JSONException
             Log.d(TAG, "CreateOfferCommand");
             Peer peer = peers.get(peerId);
             peer.pc.createOffer(peer, mPeerConnConstraints);
@@ -137,7 +127,7 @@ public class WebRtcClient {
      * @param to      id of recipient
      * @param type    type of message
      * @param payload payload of message
-     * @throws JSONException
+     * @throws JSONException throws json exception
      */
     public void sendMessage(String to, String type, JSONObject payload) throws JSONException {
         JSONObject message = new JSONObject();
@@ -175,7 +165,6 @@ public class WebRtcClient {
                     }
                     // if peer is unknown, try to add him
                     if (!peers.containsKey(from)) {
-                        // if MAX_PEER is reach, ignore the call
                         int endPoint = findEndPoint();
                         if (endPoint != MAX_PEER) {
                             Peer peer = addPeer(from, endPoint);
@@ -213,7 +202,7 @@ public class WebRtcClient {
 
         @Override
         public void onCreateSuccess(final SessionDescription sdp) {
-            // TODO: modify sdp to use mPeerConnParams prefered codecs
+            // TODO: modify sdp to use mPeerConnParams preferred codecs
             try {
                 JSONObject payload = new JSONObject();
                 payload.put("type", sdp.type.canonicalForm());
@@ -283,9 +272,6 @@ public class WebRtcClient {
         @Override
         public void onAddStream(MediaStream mediaStream) {
             Log.d(TAG, "onAddStream " + mediaStream.label());
-            // remote streams are displayed from 1 to MAX_PEER (0 is localStream)
-//            mediaStream.videoTracks.get(0).addRenderer(new VideoRenderer(mRemoteRender));
-//            mListener.onAddRemoteStream(mediaStream, endPoint + 1);
         }
 
         @Override
@@ -308,7 +294,7 @@ public class WebRtcClient {
             this.pc = factory.createPeerConnection(iceServers, mPeerConnConstraints, this);
             this.id = id;
             this.endPoint = endPoint;
-            pc.addStream(mLocalMediaStream); //, new MediaConstraints()
+            pc.addStream(mLocalMediaStream);
         }
     }
 
@@ -328,14 +314,31 @@ public class WebRtcClient {
     }
 
     public WebRtcClient(Context context, RtcListener listener, VideoCapturer capturer, PeerConnectionClient.PeerConnectionParameters params) {
-        mContext = context;
         mListener = listener;
         mPeerConnParams = params;
         videoCapturer = capturer;
-        PeerConnectionFactory.initializeAndroidGlobals(mContext, true, true,
-                params.videoCodecHwAcceleration);
-        factory = new PeerConnectionFactory();
-        String host = "http://" + context.getString(R.string.host) + ":" + context.getString(R.string.port) + "/";
+        PeerConnectionFactory.initializeAndroidGlobals(context, params.videoCodecHwAcceleration);
+        PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
+        options.disableNetworkMonitor = true;
+        factory = new PeerConnectionFactory(options);
+
+        iceServers.add(new PeerConnection.IceServer("stun:23.21.150.121"));
+        iceServers.add(new PeerConnection.IceServer("stun:stun.l.google.com:19302"));
+
+        mPeerConnConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
+        mPeerConnConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
+        mPeerConnConstraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
+
+        initScreenCaptureStream();
+    }
+
+
+    public void connect(String serverAddress) {
+        if (mSocket != null && mSocket.connected()) {
+            return;
+        }
+
+        String host = "http://" + serverAddress + "/";
         try {
             mSocket = IO.socket(host);
         } catch (URISyntaxException e) {
@@ -363,31 +366,6 @@ public class WebRtcClient {
         });
         mSocket.connect();
         Log.d(TAG, "socket start connect");
-
-        iceServers.add(new PeerConnection.IceServer("stun:23.21.150.121"));
-        iceServers.add(new PeerConnection.IceServer("stun:stun.l.google.com:19302"));
-
-        mPeerConnConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
-        mPeerConnConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
-        mPeerConnConstraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
-    }
-
-
-    /**
-     * Call this method in Activity.onDestroy()
-     */
-    public void destroy() {
-        for (Peer peer : peers.values()) {
-            peer.pc.dispose();
-        }
-        if (factory != null) {
-            factory.dispose();
-        }
-        if (mVideoSource != null) {
-            mVideoSource.dispose();
-        }
-//        mSocket.disconnect();
-//        mSocket.close();
     }
 
     private int findEndPoint() {
@@ -404,7 +382,6 @@ public class WebRtcClient {
      * @param name mSocket name
      */
     public void start(String name) {
-        initScreenCapturStream();
         try {
             JSONObject message = new JSONObject();
             message.put("name", name);
@@ -414,7 +391,14 @@ public class WebRtcClient {
         }
     }
 
-    private void initScreenCapturStream() {
+    private void initScreenCaptureStream() {
+//        AudioRecord audioRecord = new AudioRecord.Builder()
+//                .setAudioPlaybackCaptureConfig(
+//                        new AudioPlaybackCaptureConfiguration.Builder().build()
+//                )
+//                .setPrivacySensitive(false)
+//                .build();
+
         mLocalMediaStream = factory.createLocalMediaStream("ARDAMS");
         MediaConstraints videoConstraints = new MediaConstraints();
         videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxHeight", Integer.toString(mPeerConnParams.videoHeight)));
@@ -422,16 +406,14 @@ public class WebRtcClient {
         videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxFrameRate", Integer.toString(mPeerConnParams.videoFps)));
         videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("minFrameRate", Integer.toString(mPeerConnParams.videoFps)));
 
-//        VideoCapturer capturer = createScreenCapturer();
-        mVideoSource = factory.createVideoSource(videoCapturer);
+        VideoSource mVideoSource = factory.createVideoSource(videoCapturer);
         videoCapturer.startCapture(mPeerConnParams.videoWidth, mPeerConnParams.videoHeight, mPeerConnParams.videoFps);
-        VideoTrack localVideoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, mVideoSource);
-        localVideoTrack.setEnabled(true);
+        VideoTrack mVideoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, mVideoSource);
+        mVideoTrack.setEnabled(true);
         mLocalMediaStream.addTrack(factory.createVideoTrack("ARDAMSv0", mVideoSource));
-        AudioSource audioSource = factory.createAudioSource(new MediaConstraints());
-        mLocalMediaStream.addTrack(factory.createAudioTrack("ARDAMSa0", audioSource));
-//        mLocalMediaStream.videoTracks.get(0).addRenderer(new VideoRenderer(mLocalRender));
-//        mListener.onLocalStream(mLocalMediaStream);
+        //AudioSource audioSource = factory.createAudioSource(new MediaConstraints());
+        //mLocalMediaStream.addTrack(factory.createAudioTrack("ARDAMSa0", audioSource));
+
         mListener.onStatusChanged("STREAMING");
     }
 

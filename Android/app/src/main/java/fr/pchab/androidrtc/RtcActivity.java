@@ -5,15 +5,16 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import org.webrtc.ScreenCapturerAndroid;
@@ -24,20 +25,20 @@ import static android.content.ContentValues.TAG;
 public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     private WebRtcClient mWebRtcClient;
     private static final int CAPTURE_PERMISSION_REQUEST_CODE = 1;
-    //    private EglBase rootEglBase;
     private static Intent mMediaProjectionPermissionResultData;
     private static int mMediaProjectionPermissionResultCode;
 
     public static String STREAM_NAME_PREFIX = "android_device_stream";
-    // List of mandatory application permissions.／
-    private static final String[] MANDATORY_PERMISSIONS = {"android.permission.MODIFY_AUDIO_SETTINGS",
-            "android.permission.RECORD_AUDIO", "android.permission.INTERNET"};
+    private static final String[] MANDATORY_PERMISSIONS = {
+            "android.permission.MODIFY_AUDIO_SETTINGS",
+            "android.permission.RECORD_AUDIO",
+            "android.permission.INTERNET"};
 
-    //    private SurfaceViewRenderer pipRenderer;
-//    private SurfaceViewRenderer fullscreenRenderer;
     public static int sDeviceWidth;
     public static int sDeviceHeight;
     public static final int SCREEN_RESOLUTION_SCALE = 2;
+
+    private EditText editIpPort;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -55,26 +56,11 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         sDeviceWidth = metrics.widthPixels;
         sDeviceHeight = metrics.heightPixels;
 
-//        pipRenderer = (SurfaceViewRenderer) findViewById(R.id.pip_video_view);
-//        fullscreenRenderer = (SurfaceViewRenderer) findViewById(R.id.fullscreen_video_view);
-
-//        EglBase rootEglBase = EglBase.create();
-//        pipRenderer.init(rootEglBase.getEglBaseContext(), null);
-//        pipRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-//        fullscreenRenderer.init(rootEglBase.getEglBaseContext(), null);
-//        fullscreenRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL);
-
-//        pipRenderer.setZOrderMediaOverlay(true);
-//        pipRenderer.setEnableHardwareScaler(true /* enabled */);
-//        fullscreenRenderer.setEnableHardwareScaler(true /* enabled */);
-        // Check for mandatory permissions.
-        for (String permission : MANDATORY_PERMISSIONS) {
-            if (checkCallingOrSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-                setResult(RESULT_CANCELED);
-                finish();
-                return;
-            }
+        editIpPort = findViewById(R.id.editIpPort);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(MANDATORY_PERMISSIONS, 0);
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             startScreenCapture();
         } else {
@@ -97,6 +83,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
             report("User didn't give permission to capture the screen.");
             return null;
         }
+
         return new ScreenCapturerAndroid(
                 mMediaProjectionPermissionResultData, new MediaProjection.Callback() {
             @Override
@@ -116,6 +103,10 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     }
 
     private void init() {
+        if (mMediaProjectionPermissionResultCode != Activity.RESULT_OK) {
+            return;
+        }
+
         PeerConnectionClient.PeerConnectionParameters peerConnectionParameters =
                 new PeerConnectionClient.PeerConnectionParameters(true, false,
                         true, sDeviceWidth / SCREEN_RESOLUTION_SCALE, sDeviceHeight / SCREEN_RESOLUTION_SCALE, 0,
@@ -124,7 +115,6 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                         true,
                         0,
                         "OPUS", false, false, false, false, false, false, false, false, null);
-//        mWebRtcClient = new WebRtcClient(getApplicationContext(), this, pipRenderer, fullscreenRenderer, createScreenCapturer(), peerConnectionParameters);
         mWebRtcClient = new WebRtcClient(getApplicationContext(), this, createScreenCapturer(), peerConnectionParameters);
     }
 
@@ -133,40 +123,8 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onDestroy() {
-        if (mWebRtcClient != null) {
-//            mWebRtcClient.onDestroy();
-        }
-        super.onDestroy();
-    }
-
-    @Override
     public void onReady(String callId) {
         mWebRtcClient.start(STREAM_NAME_PREFIX);
-    }
-
-    @Override
-    public void onCall(final String applicant) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-            }
-        });
-    }
-
-    @Override
-    public void onHandup() {
-
     }
 
     @Override
@@ -179,4 +137,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         });
     }
 
+    public void onConnectClick(View view) {
+        mWebRtcClient.connect(editIpPort.getText().toString());
+    }
 }

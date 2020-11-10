@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AndroidRTC</string>
-    <string name="host">192.168.0.102</string>
+    <string name="host">192.168.1.2</string>
     <string name="port">3000</string>
-    <string name="action_settings">Options</string>
-    <string name="dialog_calling">%1$s is calling ……</string>
-    <string name="dialog_answer">Answer</string>
-    <string name="dialog_hangup">Hangup</string>
+    <string name="ip_port_hint">Server address (IP:Port):</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="default_ip_port">192.168.1.2:3000</string>
 </resources>
