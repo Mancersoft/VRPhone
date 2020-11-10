@@ -135,7 +135,7 @@ public class WebRtcClient {
         message.put("type", type);
         message.put("payload", payload);
         mSocket.emit("message", message);
-        Log.d(TAG, "socket send " + type + " to " + to + " payload:" + payload);
+        //Log.d(TAG, "socket send " + type + " to " + to + " payload:" + payload);
     }
 
     public class MessageHandler {
@@ -158,7 +158,7 @@ public class WebRtcClient {
 //                    JSONObject data = new JSONObject(info);
                     String from = data.optString("from");
                     String type = data.optString("type");
-                    Log.d(TAG, "socket received " + type + " from " + from);
+                    //Log.d(TAG, "socket received " + type + " from " + from);
                     JSONObject payload = null;
                     if (!type.equals("init")) {
                         payload = data.optJSONObject("payload");

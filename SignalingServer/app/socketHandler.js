@@ -7,7 +7,7 @@ module.exports = function(io, streams) {
 	//client.emit('id', client.id);
 
     client.on('message', function (details) {
-      console.log('on message ' + JSON.stringify(details));
+      //console.log('on message ' + JSON.stringify(details));
       var otherClient = io.sockets.connected[details.to];
 
       if (!otherClient) {
@@ -21,7 +21,16 @@ module.exports = function(io, streams) {
       
     client.on('readyToStream', function(options) {
       console.log('-- ' + client.id + ' is ready to stream --');
-      
+	  
+	  let clientIdObj = { id: client.id };
+      Object.values(io.sockets.connected).forEach(other => {
+	    if (client.id !== other.id) {
+          other.emit('remoteId', clientIdObj);
+		  let otherIdObj = { id: other.id };
+		  client.emit('remoteId', otherIdObj);
+        }
+      });
+	  
       streams.addStream(client.id, options.name); 
     });
     

@@ -14,6 +14,8 @@ public class SocketIOSignaler : Signaler
 
     public SocketIOComponent socket;
 
+    public string localPeerId;
+
     public string remotePeerId;
 
     public MicrophoneSource microphoneSource;
@@ -27,7 +29,7 @@ public class SocketIOSignaler : Signaler
         message.AddField("type", type);
         message.AddField("payload", payload);
         socket.Emit("message", message);
-        Debug.Log($"SendIOMessage remotePeer = {remotePeerId}; type = {type}");
+        //Debug.Log($"SendIOMessage remotePeer = {remotePeerId}; type = {type}");
         
         return Task.CompletedTask;
     }
@@ -54,6 +56,7 @@ public class SocketIOSignaler : Signaler
     void Start()
     {
         socket.On("id", OnId);
+        socket.On("remoteId", OnRemoteId);
         socket.On("message", OnMessage);
         socket.On("connect", (ev) => { Debug.Log("socket state connect"); });
         socket.On("disconnect", (ev) => { Debug.Log("socket state disconnect"); });
@@ -67,10 +70,17 @@ public class SocketIOSignaler : Signaler
 
     private void OnId(SocketIOEvent ev)
     {
-        string id = ev.data["id"].ToString();
+        string id = GetString(ev.data, "id");
         Debug.Log($"OnId {id}");
         OnStatusChanged("READY");
         OnReady(id);
+    }
+
+    private void OnRemoteId(SocketIOEvent ev)
+    {
+        remotePeerId = GetString(ev.data, "id");
+        Debug.Log($"OnRemoteId {remotePeerId}");
+        SendIOMessage("init", null);
     }
 
     public static string GetString(JSONObject jObject, string name)
@@ -92,7 +102,7 @@ public class SocketIOSignaler : Signaler
         string from = GetString(ev.data, "from");
         remotePeerId = from;
         string type = GetString(ev.data, "type");
-        Debug.Log($"socket received {type} from {from}");
+        //Debug.Log($"socket received {type} from {from}");
         JSONObject payload = null;
         if (type != "init")
         {
@@ -135,8 +145,9 @@ public class SocketIOSignaler : Signaler
         OnStatusChanged("STREAMING");
     }
 
-    private void OnReady(string remoteId)
+    private void OnReady(string peerId)
     {
+        localPeerId = peerId;
         StartStream(STREAM_NAME_PREFIX);
     }
 
@@ -149,7 +160,7 @@ public class SocketIOSignaler : Signaler
     protected override void Update()
     {
         base.Update();
-        if (Input.GetKeyDown(KeyCode.F))
+        if (Input.GetKeyDown(KeyCode.P))
         {
             SendIOMessage("init", null);
         }

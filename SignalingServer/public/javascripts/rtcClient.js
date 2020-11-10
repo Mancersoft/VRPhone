@@ -81,12 +81,11 @@ var PeerManager = (function () {
     );
   }
   function handleMessage(message) {
-    console.log('handleMessage');
     var type = message.type,
         from = message.from,
         pc = (peerDatabase[from] || addPeer(from)).pc;
 
-    console.log('received ' + type + ' from ' + from);
+    //console.log('received ' + type + ' from ' + from);
   
     switch (type) {
       case 'init':
@@ -112,7 +111,7 @@ var PeerManager = (function () {
     }
   }
   function send(type, to, payload) {
-    console.log('sending ' + type + ' to ' + to);
+    //console.log('sending ' + type + ' to ' + to);
 
     socket.emit('message', {
       to: to,
