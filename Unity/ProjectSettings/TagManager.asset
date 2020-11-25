@@ -3,7 +3,9 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - cond1Toggle
+  - cond2Toggle
   layers:
   - Default
   - TransparentFX
