@@ -62,7 +62,7 @@ public class SocketIOSignaler : Signaler
         socket.On("disconnect", (ev) => { Debug.Log("socket state disconnect"); });
         socket.On("connect", (ev) => { Debug.Log("socket state connect"); });
         socket.On("error", (ev) => {
-            Debug.Log("socket state error ");
+            //Debug.Log("socket state error ");
         });
         socket.Connect();
         Debug.Log("socket start connect");

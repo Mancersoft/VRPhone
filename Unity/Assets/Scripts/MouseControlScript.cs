@@ -5,26 +5,26 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 public class MouseControlScript : MonoBehaviour
 {
-    public XRBaseInteractor rightInteractor;
-    public XRBaseInteractor leftInteractor;
+    //public XRBaseInteractor rightInteractor;
+    //public XRBaseInteractor leftInteractor;
     public ObjectControlScript objectControlScript;
 
-    public float interactorHeightOffset;
+    //public float interactorHeightOffset;
 
     public float raycastMaxDistance = 3.0f;
 
 #if UNITY_EDITOR || UNITY_STANDALONE
     void Start()
     {
-        leftInteractor.gameObject.SetActive(false);
-        rightInteractor.GetComponent<XRRayInteractor>().raycastMask =
-            (1 << LayerMask.NameToLayer("Grab")) |
-            (1 << LayerMask.NameToLayer("UI")) |
-            (1 << LayerMask.NameToLayer("Grab Ignore Ray"));
-        rightInteractor.transform.position = new Vector3(
-            rightInteractor.transform.position.x,
-            rightInteractor.transform.position.y - interactorHeightOffset,
-            rightInteractor.transform.position.z);
+        //leftInteractor.gameObject.SetActive(false);
+        //rightInteractor.GetComponent<XRRayInteractor>().raycastMask =
+        //    (1 << LayerMask.NameToLayer("Grab")) |
+        //    (1 << LayerMask.NameToLayer("UI")) |
+        //    (1 << LayerMask.NameToLayer("Grab Ignore Ray"));
+        //rightInteractor.transform.position = new Vector3(
+        //    rightInteractor.transform.position.x,
+        //    rightInteractor.transform.position.y - interactorHeightOffset,
+        //    rightInteractor.transform.position.z);
     }
 
     void Update()
@@ -39,7 +39,7 @@ public class MouseControlScript : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit, 30f, ~LayerMask.GetMask()))
         {
-            rightInteractor.transform.LookAt(hit.point);
+            //rightInteractor.transform.LookAt(hit.point);
             if (hit.distance > raycastMaxDistance)
             {
                 return;
@@ -51,14 +51,14 @@ public class MouseControlScript : MonoBehaviour
                 {
                     if (CheckIsSimpleInteractable(hit2.transform))
                     {
-                        var buttonInteractable = hit2.transform.GetComponent<XRSimpleInteractable>();
-                        buttonInteractable.onHoverEntered?.Invoke(rightInteractor);
+                        //var buttonInteractable = hit2.transform.GetComponent<XRSimpleInteractable>();
+                        //buttonInteractable.onHoverEntered?.Invoke(rightInteractor);
                     }
                 }
                 else if (CheckIsSimpleInteractable(hit.transform))
                 {
-                    var coinInteractable = hit.transform.GetComponent<XRSimpleInteractable>();
-                    coinInteractable.onHoverEntered?.Invoke(rightInteractor);
+                    //var coinInteractable = hit.transform.GetComponent<XRSimpleInteractable>();
+                    //coinInteractable.onHoverEntered?.Invoke(rightInteractor);
                 }
                 else if (CheckIsGrabable(hit.transform) && CheckInteractableCollider(hit.transform, hit.collider))
                 {
@@ -77,8 +77,7 @@ public class MouseControlScript : MonoBehaviour
     private static bool CheckInteractableCollider(Transform obj, Collider collider)
     {
         var xrGrabScript = obj.GetComponent<XRGrabInteractable>();
-        bool isInteractable = xrGrabScript.colliders.Contains(collider);
-        return isInteractable && !obj.name.Contains("Help");
+        return xrGrabScript.colliders.Contains(collider);
     }
 
     private static bool CheckIsSimpleInteractable(Transform obj)

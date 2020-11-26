@@ -7,7 +7,7 @@ public class ObjectControlScript : MonoBehaviour
 {
     public Transform controlParent;
 
-    public XRBaseInteractor rightInteractor;
+    //public XRBaseInteractor rightInteractor;
 
     public float moveSpeed;
     public float rotSpeed;
@@ -88,8 +88,8 @@ public class ObjectControlScript : MonoBehaviour
         holdedObjRigidbody.useGravity = false;
         holdedObjRigidbody.freezeRotation = true;
 
-        var grabInteractable = GetGrabInteractable(obj);
-        grabInteractable?.onSelectEntered?.Invoke(rightInteractor);
+        //var grabInteractable = GetGrabInteractable(obj);
+        //grabInteractable?.onSelectEntered?.Invoke(rightInteractor);
 
         objDistance = Camera.main.WorldToScreenPoint(holdedObj.position).z;
         objOffset = holdedObj.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, objDistance));

@@ -28,7 +28,8 @@ public class CharacterControlScript : MonoBehaviour
         if (!objectControlScript.IsObjHolded || Input.GetMouseButton(1))
         {
             Vector3 move = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-            controller.Move(rotationTransfrorm.rotation * move * speed * Time.deltaTime);
+            var rotation = Quaternion.Euler(0, rotationTransfrorm.eulerAngles.y, 0);
+            controller.Move(rotation * move * speed * Time.deltaTime);
         }
     }
 
