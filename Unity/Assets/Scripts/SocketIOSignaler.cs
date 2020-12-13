@@ -108,7 +108,8 @@ public class SocketIOSignaler : Signaler
         {
             payload = ev.data["payload"];
         }
-        
+
+        Debug.Log(ev.data);
         switch (type)
         {
             case "init":
