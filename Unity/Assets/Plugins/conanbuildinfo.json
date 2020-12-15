@@ -1,0 +1,143 @@
+{
+  "deps_env_info": {
+    "BOOST_ROOT": "C:\\.conan\\d875b28d\\1"
+  },
+  "deps_user_info": {
+    "boost": {}
+  },
+  "dependencies": [
+    {
+      "version": "1.71.0",
+      "description": "Boost provides free peer-reviewed portable C++ source libraries",
+      "rootpath": "C:\\.conan\\d875b28d\\1",
+      "sysroot": "",
+      "include_paths": [
+        "C:\\.conan\\d875b28d\\1\\include"
+      ],
+      "lib_paths": [
+        "C:\\.conan\\d875b28d\\1\\lib"
+      ],
+      "bin_paths": [
+        "C:\\.conan\\d875b28d\\1\\bin"
+      ],
+      "build_paths": [
+        "C:\\.conan\\d875b28d\\1\\"
+      ],
+      "res_paths": [],
+      "libs": [
+        "boost_wave",
+        "boost_container",
+        "boost_contract",
+        "libboost_exception",
+        "boost_graph",
+        "boost_iostreams",
+        "boost_locale",
+        "boost_log",
+        "boost_program_options",
+        "boost_random",
+        "boost_regex",
+        "boost_serialization",
+        "boost_wserialization",
+        "boost_coroutine",
+        "boost_fiber",
+        "boost_context",
+        "boost_timer",
+        "boost_thread",
+        "boost_chrono",
+        "boost_date_time",
+        "boost_atomic",
+        "boost_filesystem",
+        "boost_system",
+        "boost_type_erasure",
+        "boost_log_setup",
+        "boost_math_c99",
+        "boost_math_c99f",
+        "boost_math_c99l",
+        "boost_math_tr1",
+        "boost_math_tr1f",
+        "boost_math_tr1l",
+        "boost_stacktrace_noop",
+        "boost_stacktrace_windbg",
+        "boost_stacktrace_windbg_cached",
+        "boost_unit_test_framework",
+        "bcrypt"
+      ],
+      "system_libs": [],
+      "defines": [
+        "BOOST_ALL_DYN_LINK",
+        "BOOST_ALL_NO_LIB"
+      ],
+      "cflags": [],
+      "cxxflags": [],
+      "sharedlinkflags": [],
+      "exelinkflags": [],
+      "frameworks": [],
+      "framework_paths": [],
+      "cppflags": [],
+      "name": "boost"
+    }
+  ],
+  "settings": {
+    "arch": "x86_64",
+    "arch_build": "x86_64",
+    "build_type": "Release",
+    "compiler": "Visual Studio",
+    "compiler.cppstd": "17",
+    "compiler.runtime": "MD",
+    "compiler.version": "15",
+    "os": "Windows",
+    "os_build": "Windows"
+  },
+  "options": {
+    "boost": {
+      "asio_no_deprecated": "False",
+      "bzip2": "False",
+      "error_code_header_only": "False",
+      "extra_b2_flags": "None",
+      "filesystem_no_deprecated": "False",
+      "header_only": "False",
+      "layout": "system",
+      "lzma": "False",
+      "magic_autolink": "False",
+      "namespace": "boost",
+      "namespace_alias": "False",
+      "python_executable": "None",
+      "python_version": "None",
+      "segmented_stacks": "False",
+      "shared": "True",
+      "system_no_deprecated": "False",
+      "use_icu": "False",
+      "without_atomic": "False",
+      "without_chrono": "False",
+      "without_container": "False",
+      "without_context": "False",
+      "without_contract": "False",
+      "without_coroutine": "False",
+      "without_date_time": "False",
+      "without_exception": "False",
+      "without_fiber": "False",
+      "without_filesystem": "False",
+      "without_graph": "False",
+      "without_graph_parallel": "False",
+      "without_iostreams": "False",
+      "without_locale": "False",
+      "without_log": "False",
+      "without_math": "False",
+      "without_mpi": "False",
+      "without_program_options": "False",
+      "without_python": "True",
+      "without_random": "False",
+      "without_regex": "False",
+      "without_serialization": "False",
+      "without_stacktrace": "False",
+      "without_system": "False",
+      "without_test": "False",
+      "without_thread": "False",
+      "without_timer": "False",
+      "without_type_erasure": "False",
+      "without_wave": "False",
+      "zlib": "False",
+      "zstd": "False"
+    }
+  }
+}

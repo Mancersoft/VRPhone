@@ -80,6 +80,7 @@ public class GuiController : MonoBehaviour
 
     void Start()
     {
+        Screen.orientation = ScreenOrientation.Portrait;
         //If a saved string exists, load GUI values from it
         _filePath = Application.persistentDataPath + @"\SavedSetup.txt";
         if (File.Exists(_filePath))
@@ -93,9 +94,9 @@ public class GuiController : MonoBehaviour
         _conditionCodeInput.text = "";
         _blockCodeInput.text = "";
         _numberOfTargetsInput.value = 1;
-        _targetAmplitudesInput.text = "120 180 520 640 320 440 400 800 900 920";
-		_targetWidthsInput.text = "100 100 200 200 80 80 40 60 60 40";
-        _errorThresholdInput.text = "20";
+        _targetAmplitudesInput.text = "265 326 163 224 203 409 458 467";
+        _targetWidthsInput.text = "200 200 80 80 40 60 60 40";
+        _errorThresholdInput.text = "15";
         _spatialHysteresisInput.text = "2.0";
         _controlMethodInput.value = 7; //1;
         _confirmationMethodInput.value = 0;

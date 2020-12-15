@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<assets>
+  <streamingAssets>
+    <!--Android-->
+    <!--/!\ Don't use overWrite attribute for configuration, if you want to use the configuration xml in the .apk delete this configuration xml otherwise it will use this one-->
+    <file path="./assets/StreamingAssets/SolAR/Android/android.xml" />
+    <!--CameraCalibration-->
+    <file path="./assets/StreamingAssets/SolAR/CameraCalibration/camera_calibration.yml" overWrite="true" />
+    <!--FBOW-->
+    <file path="./assets/StreamingAssets/SolAR/FBOW/akaze.fbow" overWrite="true" />
+    <!--Markers-->
+    <file path="./assets/StreamingAssets/SolAR/Markers/FiducialMarker.gif" overWrite="true" />
+    <file path="./assets/StreamingAssets/SolAR/Markers/fiducialMarker.yml" overWrite="true" />
+    <file path="./assets/StreamingAssets/SolAR/Markers/fiducialMarkerLeap.yml" overWrite="true" />
+    <file path="./assets/StreamingAssets/SolAR/Markers/graf1.png" overWrite="true" />
+    <file path="./assets/StreamingAssets/SolAR/Markers/NaturalImageMarker.yml" overWrite="true" />
+    <!--Pipelines-->
+    <file path="./assets/StreamingAssets/SolAR/Pipelines/PipelineFiducialMarker.xml" overWrite="true" />
+    <file path="./assets/StreamingAssets/SolAR/Pipelines/PipelineNaturalImageMarker.xml" overWrite="true" />
+    <file path="./assets/StreamingAssets/SolAR/Pipelines/PipelineSlam.xml" overWrite="true" />
+  </streamingAssets>
+</assets>

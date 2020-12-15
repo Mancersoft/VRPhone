@@ -481,12 +481,16 @@ public class TestController : MonoBehaviour
         _storedTestBlock = blockToStore;
     }
 
-    public static Vector2 GetTargetSpawnPosition(float amplitude, float angle)
+    public Vector2 GetTargetSpawnPosition(float amplitude, float angle)
     {
         angle -= 90;
         float x = amplitude * Mathf.Cos(-angle * Mathf.Deg2Rad);
         float y = amplitude * Mathf.Sin(-angle * Mathf.Deg2Rad);
-        return new Vector2(x, y);
+        float verticalShift = (Screen.height / 2) - TestBlockData.TargetAmplitudes.Max() - (TestBlockData.TargetDiameters.Max() / 2);
+#if !UNITY_EDITOR
+        verticalShift = -verticalShift;
+#endif
+        return new Vector2(x, y + verticalShift);
     }
 
     public void StartVerification()
