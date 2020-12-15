@@ -26,6 +26,8 @@ public class TestController : MonoBehaviour
     [SerializeField] private Camera _viveCanvasCamera;
     [SerializeField] private Camera _foveCanvasCamera;
 
+    [SerializeField] private GameObject _startSequenceButton;
+
     public static TestController Instance;
     public bool IsRunning { get; private set; }
     public TestBlock TestBlockData { get; private set; }
@@ -55,6 +57,9 @@ public class TestController : MonoBehaviour
     private List<EyeGazeTarget> _currentTargetOutlines;
     private List<TestVerification> _testVerifications;
     private Vector2 _activeVerificationTargetCoordinates;
+
+    private bool startSequenceClicked = false;
+
     void Awake()
     {
         Instance = this;
@@ -66,7 +71,8 @@ public class TestController : MonoBehaviour
     void Start () {
         _dbController = DBController.Instance;
         _pupilGazeTracker = FindObjectOfType<PupilGazeTracker>();
-        _pressStartText.enabled = false;
+        _pressStartText.enabled = true;
+        _startSequenceButton.SetActive(true);
         //If data is stored from TestLoader scene, use that
         if (_storedTestBlock != null)
             LoadTestData(_storedTestBlock);
@@ -77,11 +83,20 @@ public class TestController : MonoBehaviour
                 new Color32(67, 67, 67, 255), Color.yellow, Color.black, new Color32(200, 200, 200, 255), new Color32(128, 128, 128, 255), Color.red));
     }
 
+    public void OnStartSequenceClick()
+    {
+        startSequenceClicked = true;
+        _startSequenceButton.SetActive(false);
+    }
+
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.JoystickButton7) || Input.touchCount == 2)
+        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.JoystickButton7) || startSequenceClicked)
+        {
+            startSequenceClicked = false;
             StartTest();
-        if (Input.GetKeyDown(KeyCode.T) && !_verificationRunning && !IsRunning || Input.touchCount == 3)
+        }
+        if (Input.GetKeyDown(KeyCode.T) && !_verificationRunning && !IsRunning)
             StartVerification();
         if (_verificationRunning)
             VerificationStep();
@@ -178,7 +193,7 @@ public class TestController : MonoBehaviour
         _targetCanvas.worldCamera = _vrEyeTrackerController.VRCamera;
         _targetCanvas.planeDistance = _canvasDistanceToCamera;
         _showCursor = TestBlockData.ShowCursor;
-        GazeCursor.Instance.SetEnabled(false);
+        GazeCursor.Instance.SetEnabled(_showCursor);
         _vrEyeTrackerController.LoadTestData(this.TestBlockData);
         GazeCursor.Instance.MouseSensitivity = TestBlockData.MouseSensivity;
         if(TestBlockData.RecordGazePosition)
@@ -200,6 +215,7 @@ public class TestController : MonoBehaviour
         if (IsRunning) return;
         _errorThresholdText.enabled = false;
         _pressStartText.enabled = false;
+        _startSequenceButton.SetActive(false);
 
         _sequenceIndex++;
         if (_sequenceIndex >= TestBlockData.Sequences.Count) return;
@@ -228,14 +244,17 @@ public class TestController : MonoBehaviour
         if (!IsRunning) return;
         IsRunning = false;
         Debug.Log("----Test Sequence Ended----");
-
+        Debug.Log("SequenceIndex: " + _sequenceIndex + "; SequecneCount: " + TestBlockData.Sequences.Count);
         if (_sequenceIndex >= TestBlockData.Sequences.Count - 1)
         {
             Debug.Log("----Test Block Ended----");
             EvaluateEndedBlock();
         }
         else
+        {
             _pressStartText.enabled = true;
+            _startSequenceButton.SetActive(true);
+        }
     }
 
     private void EvaluateEndedSequence()

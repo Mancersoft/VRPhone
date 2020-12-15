@@ -104,9 +104,9 @@ public class GuiController : MonoBehaviour
         _timeoutInput.text = "10000";
         _eyeSmoothFactorInput.text = "5";
         _mouseSensivityInput.text = "10";
-        _backgroundColorPicker.CurrentColour = Color.white; //new Color32(35, 23, 10, 255);
+        _backgroundColorPicker.CurrentColour = new Color32(214, 214, 214, 255); //new Color32(35, 23, 10, 255);
         _targetColorPicker.CurrentColour = Color.black; //new Color32(29, 11, 40, 255);
-        _cursorColorPicker.CurrentColour = Color.black; //new Color32(52, 0, 0, 255);
+        _cursorColorPicker.CurrentColour = Color.blue; //new Color32(52, 0, 0, 255);
         _hoverColorPicker.CurrentColour = Color.gray; //new Color32(0, 30, 36, 255);
         _buttonDownColorPicker.CurrentColour = Color.gray; //new Color32(100, 100, 100, 255);
         _readyForGestureColorPicker.CurrentColour = Color.red;

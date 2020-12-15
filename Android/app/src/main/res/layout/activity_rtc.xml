@@ -43,5 +43,14 @@
             android:onClick="onConnectClick"
             android:layout_gravity="center_horizontal"/>
 
+        <Button
+            android:layout_marginTop="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme"
+            android:text="@string/stop_service"
+            android:onClick="onStopServiceClick"
+            android:layout_gravity="center_horizontal"/>
+
     </LinearLayout>
 </ScrollView>

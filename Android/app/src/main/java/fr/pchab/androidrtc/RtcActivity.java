@@ -138,6 +138,16 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     }
 
     public void onConnectClick(View view) {
+        if (Build.VERSION.SDK_INT >= 26) {
+            startForegroundService(new Intent(this, MyForegroundService.class));
+        } else {
+            startService(new Intent(this, MyForegroundService.class));
+        }
+
         mWebRtcClient.connect(editIpPort.getText().toString());
+    }
+
+    public void onStopServiceClick(View view) {
+        stopService(new Intent(this, MyForegroundService.class));
     }
 }

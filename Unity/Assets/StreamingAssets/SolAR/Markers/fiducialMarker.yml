@@ -1,7 +1,7 @@
 %YAML:1.0
 ---
-MarkerWidth: 0.047
-MarkerHeight: 0.047
+MarkerWidth: 0.0425
+MarkerHeight: 0.0425
 Pattern: !!opencv-matrix
    rows: 6
    cols: 6

@@ -167,6 +167,9 @@ namespace SolAR
 
                         var rotation = Quaternion.LookRotation(forward, -up);
                         var position = -new Vector3(unityCameraPose.m03, unityCameraPose.m13, unityCameraPose.m23);
+
+                        position = Vector3.Lerp(Vector3.zero, position, 0.96f);
+
                         m_PrevSolARObj.localPosition = position;
                         m_RotationControl.localRotation = rotation;
                         var prevParent = m_PrevSolARObj.parent;
@@ -177,6 +180,14 @@ namespace SolAR
                         m_PrevSolARObj.Rotate(new Vector3(-90, 0, 0), Space.Self);
                         m_PrevSolARObj.Rotate(new Vector3(0, -180, 0), Space.Self);
 
+                        //m_PrevSolARObj.Rotate(Camera.main.transform.eulerAngles, Space.Self);
+                        //m_PrevSolARObj.Rotate(new Vector3(0, 0, -Camera.main.transform.rotation.eulerAngles.y), Space.Self);
+                        //m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Vector3.up, Camera.main.transform.rotation.eulerAngles.y);
+                        m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.right, Camera.main.transform.rotation.eulerAngles.x);
+                        m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.up, Camera.main.transform.rotation.eulerAngles.y);
+                        //m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.forward, Camera.main.transform.rotation.eulerAngles.z);
+                        //m_PrevSolARObj.Rotate(new Vector3(0, -Camera.main.transform.rotation.eulerAngles.x, 0), Space.Self);
+
                         var posDist = Vector3.Distance(m_SolARObj.position, m_PrevSolARObj.position);
                         var rotDist = Quaternion.Angle(m_SolARObj.rotation, m_PrevSolARObj.rotation);
                         
@@ -186,17 +197,17 @@ namespace SolAR
                         float rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
                         ////var angleDifferences = GetAngleDifferences(m_SolARObj.rotation, m_PrevSolARObj.rotation);
 
-                        if (posDist >= 0.02 && distLerpStatus >= 1)
+                        if (posDist >= 0.008 && distLerpStatus >= 1)
                         {
-                            Debug.Log("Pos dist: " + posDist);
+                            //Debug.Log("Pos dist: " + posDist);
                             //m_SolARObj.position = m_PrevSolARObj.position;
                             distLerpTime = Time.time;
                             curPos = m_SolARObj.position;
                             prevPos = m_PrevSolARObj.position;
                         }
-                        if ((rotDist >= 15) && rotLerpStatus >= 1) 
+                        if ((rotDist >= 10) && rotLerpStatus >= 1) 
                         {
-                            Debug.Log("Rot dist: " + rotDist);
+                            //Debug.Log("Rot dist: " + rotDist);
                             ////Debug.Log("angle: " + angleDifferences);
                             //m_SolARObj.rotation = m_PrevSolARObj.rotation;
                             rotLerpTime = Time.time;

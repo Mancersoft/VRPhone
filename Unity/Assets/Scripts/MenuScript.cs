@@ -93,6 +93,11 @@ public class MenuScript : MonoBehaviour
         {
             ToggleMenu();
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
     }
 
 
