@@ -3,9 +3,14 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 30
 
+    packagingOptions {
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/io.netty.versions.properties'
+    }
+
     defaultConfig {
         applicationId "fr.pchab.androidrtc"
-        minSdkVersion 21
+        minSdkVersion 20
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -30,6 +35,7 @@ android {
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.github.nkzawa:socket.io-client:0.4.2'
+    implementation 'com.corundumstudio.socketio:netty-socketio:1.7.18'
     implementation files('libs/audio_device_java.jar')
     implementation files('libs/autobanh.jar')
     implementation files('libs/base_java.jar')

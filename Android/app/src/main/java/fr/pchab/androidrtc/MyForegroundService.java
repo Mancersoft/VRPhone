@@ -9,11 +9,20 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 public class MyForegroundService extends Service {
+
+    private SignalingServer signalingServer;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private Future<?> serviceThread = null;
 
     @Nullable
     @Override
@@ -23,8 +32,37 @@ public class MyForegroundService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (serviceThread == null || serviceThread.isDone()) {
+            serviceThread = executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (signalingServer == null) {
+                            signalingServer = new SignalingServer();
+                        }
+
+                        signalingServer.start();
+                    } catch (Exception e) {
+                        Log.e(SignalingServer.TAG, "error", e);
+                    }
+                }
+            });
+        }
+
         startForeground();
         return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        if (signalingServer != null) {
+            signalingServer.stop();
+        }
+        if (serviceThread != null) {
+            serviceThread.cancel(true);
+        }
+
+        super.onDestroy();
     }
 
     private void startForeground() {
@@ -40,7 +78,6 @@ public class MyForegroundService extends Service {
         Notification notification = notificationBuilder.setOngoing(true)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setPriority(Notification.PRIORITY_MAX)
-                .setCategory(Notification.CATEGORY_SERVICE)
                 .build();
         startForeground(101, notification);
     }

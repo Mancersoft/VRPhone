@@ -340,10 +340,13 @@ public class WebRtcClient {
 
         String host = "http://" + serverAddress + "/";
         try {
-            mSocket = IO.socket(host);
+            IO.Options options = new IO.Options();
+            options.transports = new String[] { "websocket" };
+            mSocket = IO.socket(host, options);
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+
         mSocket.on("id", messageHandler.onId);
         mSocket.on("message", messageHandler.onMessage);
         mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {

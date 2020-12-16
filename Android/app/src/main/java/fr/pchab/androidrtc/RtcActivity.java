@@ -107,6 +107,12 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
             return;
         }
 
+        if (Build.VERSION.SDK_INT >= 26) {
+            startForegroundService(new Intent(this, MyForegroundService.class));
+        } else {
+            startService(new Intent(this, MyForegroundService.class));
+        }
+
         PeerConnectionClient.PeerConnectionParameters peerConnectionParameters =
                 new PeerConnectionClient.PeerConnectionParameters(true, false,
                         true, sDeviceWidth / SCREEN_RESOLUTION_SCALE, sDeviceHeight / SCREEN_RESOLUTION_SCALE, 0,
@@ -138,12 +144,6 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     }
 
     public void onConnectClick(View view) {
-        if (Build.VERSION.SDK_INT >= 26) {
-            startForegroundService(new Intent(this, MyForegroundService.class));
-        } else {
-            startService(new Intent(this, MyForegroundService.class));
-        }
-
         mWebRtcClient.connect(editIpPort.getText().toString());
     }
 
