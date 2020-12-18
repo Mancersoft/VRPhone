@@ -40,4 +40,5 @@ dependencies {
     implementation files('libs/autobanh.jar')
     implementation files('libs/base_java.jar')
     implementation files('libs/libjingle_peerconnection.jar')
+    implementation 'com.google.zxing:core:3.4.1'
 }

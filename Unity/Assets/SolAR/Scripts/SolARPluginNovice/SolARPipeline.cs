@@ -13,6 +13,12 @@ namespace SolAR
         public Transform m_PrevSolARObj;
         public Transform m_SolARObj;
 
+        public DeviceCameraScript deviceCameraScript;
+        public PhoneManagerScript phoneManagerScript;
+
+        public bool isScanning;
+        public bool isMarkerFound;
+
         #region Variables
         //#####################################################
         [HideInInspector]
@@ -122,15 +128,18 @@ namespace SolAR
         ////    return res <= 180 ? res : 360 - res;
         ////}
 
+
+
         void Update()
         {
-            if (UpdateReady)
+            if (isScanning && UpdateReady)
             {
                 if (m_pipelineManager != null)
                 {
                     if (m_Unity_Webcam)
                     {
                         m_webCamTexture.GetPixels32(data);
+                        //data = GetScaledTexture().GetPixels32();
 
                         for (int i = 0; i < data.Length; i++)
                         {
@@ -148,6 +157,13 @@ namespace SolAR
 
                     if (_returnCode == PIPELINEMANAGER_RETURNCODE._NEW_POSE || _returnCode == PIPELINEMANAGER_RETURNCODE._NEW_POSE_AND_IMAGE)
                     {
+                        if (!isMarkerFound)
+                        {
+                            isMarkerFound = true;
+                            deviceCameraScript.gameObject.SetActive(false);
+                            phoneManagerScript.ChangeVisibility(true);
+                        }
+                        
                         Matrix4x4 cameraPoseFromSolAR = new Matrix4x4();
 
                         cameraPoseFromSolAR.SetRow(0, new Vector4(pose.rotation().coeff(0, 0), pose.rotation().coeff(0, 1), pose.rotation().coeff(0, 2), pose.translation().coeff(0, 0)));
@@ -262,12 +278,14 @@ namespace SolAR
 
             if (m_Unity_Webcam)
             {
-                m_webCamTexture = new WebCamTexture(WebCamTexture.devices[m_webCamNum].name, width, height);
+                //m_webCamTexture = new WebCamTexture(WebCamTexture.devices[m_webCamNum].name, width, height);
+                m_webCamTexture = deviceCameraScript.activeCameraTexture;
                 m_webCamTexture.Play();
 
                 data = new Color32[width * height];
                 m_vidframe_byte = new byte[width * height * 3];
 
+                //data = GetScaledTexture().GetPixels32();
                 m_webCamTexture.GetPixels32(data);
 
                 for (int i = 0; i < data.Length; i++)
@@ -298,6 +316,8 @@ namespace SolAR
             IntPtr ptr = Marshal.UnsafeAddrOfPinnedArrayElement(array_imageData, 0);
             m_pipelineManager.start(ptr);  //IntPtr
 
+            deviceCameraScript.UpdateScreenParams();
+            //StartCoroutine(deviceCameraScript.UpdateScreenParamsCoroutine());
             UpdateReady = true;
         }
 

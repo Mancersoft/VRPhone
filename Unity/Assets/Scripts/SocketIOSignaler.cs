@@ -18,9 +18,11 @@ public class SocketIOSignaler : Signaler
 
     public string remotePeerId;
 
-    public MicrophoneSource microphoneSource;
+    //public MicrophoneSource microphoneSource;
 
-    public WebcamSource webcamSource;
+    //public WebcamSource webcamSource;
+
+    public string signalingServerIp;
 
     private Task SendIOMessage(string type, JSONObject payload)
     {
@@ -52,9 +54,9 @@ public class SocketIOSignaler : Signaler
         return SendIOMessage("candidate", payload);
     }
 
-    // Start is called before the first frame update
-    void Start()
+    public void Connect()
     {
+        socket.url = $"ws://{signalingServerIp}:9092/socket.io/?EIO=4&transport=websocket";
         socket.On("id", OnId);
         socket.On("remoteId", OnRemoteId);
         socket.On("message", OnMessage);

@@ -4,9 +4,7 @@ import android.util.Log;
 
 import com.corundumstudio.socketio.AckMode;
 import com.corundumstudio.socketio.AckRequest;
-import com.corundumstudio.socketio.AuthorizationListener;
 import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.Transport;
@@ -14,18 +12,43 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.corundumstudio.socketio.listener.ExceptionListener;
-import com.corundumstudio.socketio.listener.PingListener;
 
 import java.util.List;
 import java.util.UUID;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 public class SignalingServer {
 
     public static final String TAG = "SIGNALING_SERVER";
 
     private final SocketIOServer server;
+    private boolean isStarted;
+
+    public boolean isStarted() {
+        return isStarted;
+    }
+
+    public void setOnServerStarted(OnServerStarted onServerStarted) {
+        this.onServerStarted = onServerStarted;
+    }
+
+    public void setOnServerFailedToStart(OnServerFailedToStart onServerFailedToStart) {
+        this.onServerFailedToStart = onServerFailedToStart;
+    }
+
+    public interface OnServerStarted {
+        void onStarted();
+    }
+
+    public interface OnServerFailedToStart {
+        void onFailed();
+    }
+
+    private OnServerStarted onServerStarted;
+    private OnServerFailedToStart onServerFailedToStart;
 
     private static class ConnectData {
         private String id;
@@ -119,12 +142,12 @@ public class SignalingServer {
         config.setTransports(Transport.WEBSOCKET);
         config.setAckMode(AckMode.AUTO);
         config.setAllowCustomRequests(true);
-        config.setAuthorizationListener(new AuthorizationListener() {
-            @Override
-            public boolean isAuthorized(HandshakeData data) {
-                return data.getSingleUrlParam("transport").toLowerCase().equals("websocket");
-            }
-        });
+//        config.setAuthorizationListener(new AuthorizationListener() {
+//            @Override
+//            public boolean isAuthorized(HandshakeData data) {
+//                return data.getSingleUrlParam("transport").toLowerCase().equals("websocket");
+//            }
+//        });
         config.setExceptionListener(new ExceptionListener() {
             @Override
             public void onEventException(Exception e, List<Object> args, SocketIOClient client) {
@@ -199,7 +222,24 @@ public class SignalingServer {
     }
 
     public void start() {
-        server.start();
+        server.startAsync().addListener(new GenericFutureListener<Future<? super Void>>() {
+            @Override
+            public void operationComplete(Future<? super Void> future) throws Exception {
+                if (future.isSuccess()) {
+                    Log.d(TAG, "Server started successfully!");
+                    isStarted = true;
+                    if (onServerStarted != null) {
+                        onServerStarted.onStarted();
+                    }
+                } else {
+                    Log.d(TAG, "Server start failed!");
+                    isStarted = false;
+                    if (onServerFailedToStart != null) {
+                        onServerFailedToStart.onFailed();
+                    }
+                }
+            }
+        });
     }
 
     public void stop() {

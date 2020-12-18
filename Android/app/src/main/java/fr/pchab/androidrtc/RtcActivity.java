@@ -3,8 +3,10 @@ package fr.pchab.androidrtc;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
@@ -14,7 +16,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.webrtc.ScreenCapturerAndroid;
@@ -38,12 +41,34 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     public static int sDeviceHeight;
     public static final int SCREEN_RESOLUTION_SCALE = 2;
 
-    private EditText editIpPort;
+    private static final String QR_CODE_KEY = "SCREEN_CAPTURE_IP=";
+
+    private TextView textViewIp;
+    private ImageView imageViewQrCode;
+    private int qrCodeSize;
+
+    private final BroadcastReceiver serviceMessagesReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case MyForegroundService.SERVICE_STARTED:
+                    init();
+                    break;
+                case MyForegroundService.SERVICE_START_FAILED:
+                    stopService(new Intent(RtcActivity.this, MyForegroundService.class));
+                    Toast.makeText(RtcActivity.this,
+                            "Server failed to start! Please restart the app and try again",
+                            Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+        //noinspection deprecation
         getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
                         | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
@@ -52,20 +77,38 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                         | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         setContentView(R.layout.activity_rtc);
         DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
+        getDisplay().getRealMetrics(metrics);
         sDeviceWidth = metrics.widthPixels;
         sDeviceHeight = metrics.heightPixels;
+        qrCodeSize = Math.min(sDeviceWidth, sDeviceHeight);
 
-        editIpPort = findViewById(R.id.editIpPort);
+        textViewIp = findViewById(R.id.textViewIp);
+        imageViewQrCode = findViewById(R.id.imageViewQrCode);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(MANDATORY_PERMISSIONS, 0);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             startScreenCapture();
-        } else {
-            init();
         }
+        else {
+            startService();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(MyForegroundService.SERVICE_STARTED);
+        filter.addAction(MyForegroundService.SERVICE_START_FAILED);
+        registerReceiver(serviceMessagesReceiver, filter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(serviceMessagesReceiver);
     }
 
     @TargetApi(21)
@@ -99,10 +142,11 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
             return;
         mMediaProjectionPermissionResultCode = resultCode;
         mMediaProjectionPermissionResultData = data;
-        init();
+        startService();
+        //init();
     }
 
-    private void init() {
+    private void startService() {
         if (mMediaProjectionPermissionResultCode != Activity.RESULT_OK) {
             return;
         }
@@ -112,7 +156,9 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         } else {
             startService(new Intent(this, MyForegroundService.class));
         }
+    }
 
+    private void init() {
         PeerConnectionClient.PeerConnectionParameters peerConnectionParameters =
                 new PeerConnectionClient.PeerConnectionParameters(true, false,
                         true, sDeviceWidth / SCREEN_RESOLUTION_SCALE, sDeviceHeight / SCREEN_RESOLUTION_SCALE, 0,
@@ -122,6 +168,12 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                         0,
                         "OPUS", false, false, false, false, false, false, false, false, null);
         mWebRtcClient = new WebRtcClient(getApplicationContext(), this, createScreenCapturer(), peerConnectionParameters);
+
+        String ipAddress = Utils.getDeviceIpAddress();
+        textViewIp.setText(ipAddress);
+        imageViewQrCode.setImageBitmap(Utils.generateQrCode(QR_CODE_KEY + ipAddress, qrCodeSize));
+
+        mWebRtcClient.connect(getString(R.string.default_ip_port));
     }
 
     public void report(String info) {
@@ -143,11 +195,8 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         });
     }
 
-    public void onConnectClick(View view) {
-        mWebRtcClient.connect(editIpPort.getText().toString());
-    }
-
     public void onStopServiceClick(View view) {
         stopService(new Intent(this, MyForegroundService.class));
+        Toast.makeText(RtcActivity.this,  R.string.service_stopped, Toast.LENGTH_SHORT).show();
     }
 }

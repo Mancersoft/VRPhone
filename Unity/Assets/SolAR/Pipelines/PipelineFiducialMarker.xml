@@ -5,7 +5,7 @@
       <interface uuid="b5a6225e-6a91-4050-b298-886f4c17d9d2" name="IPipeline" description="The interface to define a video see-throuh pipeline" />
     </component>
   </module>
-   <module uuid="15e1990b-86b2-445c-8194-0cbe80ede970" name="SolARModuleOpenCV" path="./Assets/Plugins" description="OpenCV">
+  <module uuid="15e1990b-86b2-445c-8194-0cbe80ede970" name="SolARModuleOpenCV" path="./Assets/Plugins" description="OpenCV">
     <component uuid="5B7396F4-A804-4F3C-A0EB-FB1D56042BB4" name="SolARCameraOpencv" description="SolARCameraOpencv">
       <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect" />
       <interface uuid="5DDC7DF0-8377-437F-9C81-3643F7676A5B" name="ICamera" description="ICamera" />
@@ -108,7 +108,7 @@
     </configure>
     <configure component="SolARImageFilterBinaryOpencv">
       <property name="min" type="Integer" value="-1" description="minimum threshold (-1 to automatically compute it on the global image" />
-      <property name="max" type="Integer" value="255" description="maximum threshold" />
+      <property name="max" type="Integer" value="469" description="maximum threshold" />
       <!--SolARImageFilterBinaryOpencv-->
     </configure>
     <configure component="SolARContoursExtractorOpencv">

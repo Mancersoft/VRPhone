@@ -22,28 +22,25 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:theme="@style/AppTheme"
-            android:text="@string/ip_port_hint"
-            android:labelFor="@+id/editIpPort"/>
+            android:text="@string/ip_address_hint"
+            android:labelFor="@+id/textViewIp"/>
 
-        <EditText
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/editIpPort"
-            android:autofillHints="@string/default_ip_port"
-            android:text="@string/default_ip_port"
-            android:inputType="text"
+            android:id="@+id/textViewIp"
             android:theme="@style/AppTheme"/>
 
-        <Button
+        <TextView
             android:layout_marginTop="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:theme="@style/AppTheme"
-            android:text="@string/connect"
-            android:onClick="onConnectClick"
-            android:layout_gravity="center_horizontal"/>
+            android:text="@string/stop_service_hint"
+            android:labelFor="@+id/buttonStopService"/>
 
         <Button
+            android:id="@+id/buttonStopService"
             android:layout_marginTop="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -51,6 +48,22 @@
             android:text="@string/stop_service"
             android:onClick="onStopServiceClick"
             android:layout_gravity="center_horizontal"/>
+
+        <TextView
+            android:layout_marginTop="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme"
+            android:text="@string/qr_code_hint"
+            android:labelFor="@+id/imageViewQrCode"/>
+
+        <ImageView
+            android:id="@+id/imageViewQrCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:contentDescription="@null" />
 
     </LinearLayout>
 </ScrollView>
