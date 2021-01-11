@@ -133,6 +133,12 @@ PlayerSettings:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: -2104520790709891342, guid: bb74929ed20064c4a8c6cddc48c0ccd9, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -142,7 +148,7 @@ PlayerSettings:
   vrSettings:
     cardboard:
       depthFormat: 2
-      enableTransitionView: 0
+      enableTransitionView: 1
     daydream:
       depthFormat: 0
       useSustainedPerformanceMode: 0
@@ -434,6 +440,7 @@ PlayerSettings:
   - m_BuildTarget: Android
     m_Enabled: 1
     m_Devices:
+    - None
     - cardboard
   openGLRequireES31: 0
   openGLRequireES31AEP: 0
@@ -688,6 +695,7 @@ PlayerSettings:
   additionalIl2CppArgs: 
   scriptingRuntimeVersion: 1
   gcIncremental: 0
+  assemblyVersionValidation: 1
   gcWBarrierValidation: 0
   apiCompatibilityLevelPerPlatform: {}
   m_RenderingPath: 1

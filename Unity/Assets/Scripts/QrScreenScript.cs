@@ -14,6 +14,8 @@ public class QrScreenScript : MonoBehaviour
 	public SolARPipeline solarPipelineObject;
 	public SocketIOSignaler webRtcSignaler;
 
+	public GameObject findDeviceCanvas;
+
 	private Coroutine wrongCodeCoroutine;
 
 	private const string QR_SCAN_HINT = "Scan QR Code with server IP in second smartphone";
@@ -45,6 +47,7 @@ public class QrScreenScript : MonoBehaviour
 		gameObject.SetActive(false);
 		webRtcSignaler.signalingServerIp = text.Split('=')[1];
 		webRtcSignaler.Connect();
+		findDeviceCanvas.SetActive(true);
 		solarPipelineObject.isScanning = true;
 	}
 

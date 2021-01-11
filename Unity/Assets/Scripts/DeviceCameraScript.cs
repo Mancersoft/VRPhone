@@ -51,17 +51,6 @@ public class DeviceCameraScript : MonoBehaviour
 
     void Start()
     {
-        //if (Screen.width > Screen.height)
-        //{
-        //    imageFitter.aspectMode = AspectRatioFitter.AspectMode.WidthControlsHeight;
-        //}
-        //else
-        //{
-        //    imageFitter.aspectMode = AspectRatioFitter.AspectMode.HeightControlsWidth;
-        //}
-
-        //image.rectTransform.sizeDelta = new Vector2(Screen.width, Screen.height);
-
         // Check for device cameras
         if (WebCamTexture.devices.Length == 0)
         {
@@ -71,35 +60,18 @@ public class DeviceCameraScript : MonoBehaviour
         }
 
         activeCameraDevice = WebCamTexture.devices.First();
-        activeCameraTexture = new WebCamTexture(activeCameraDevice.name, solarScript.width, solarScript.height);
-        activeCameraTexture.filterMode = FilterMode.Trilinear;
+        activeCameraTexture = new WebCamTexture(activeCameraDevice.name, solarScript.width, solarScript.height)
+        {
+            filterMode = FilterMode.Trilinear
+        };
 
-        UpdateScreenParams();
         image.texture = activeCameraTexture;
         image.material.mainTexture = activeCameraTexture;
-        
+
         activeCameraTexture.Play();
+
+
         solarScript.gameObject.SetActive(true);
-    }
-
-    public void UpdateScreenParams()
-    {
-        var rectTransform = GetComponent<RectTransform>();
-        var rectWidth = rectTransform.rect.width;
-        var rectHeight = rectTransform.rect.height;
-
-        //if (rectWidth > rectHeight)
-        //{
-        //    image.rectTransform.sizeDelta = new Vector2(rectWidth, rectWidth * solarScript.height / solarScript.width);
-        //}
-        //else
-        //{
-        //    image.rectTransform.sizeDelta = new Vector2(rectHeight * solarScript.width / solarScript.height, rectHeight);
-        //}
-
-        image.rectTransform.sizeDelta = new Vector2(1920 * 2, 1080 * 2);
-        //image.texture = activeCameraTexture;
-        //image.material.mainTexture = activeCameraTexture;
     }
 
     // Make adjustments to image every frame to be safe, since Unity isn't 
@@ -113,17 +85,14 @@ public class DeviceCameraScript : MonoBehaviour
             return;
         }
 
-        UpdateScreenParams();
-
         // Rotate image to show correct orientation 
         rotationVector.z = -activeCameraTexture.videoRotationAngle;
         image.rectTransform.localEulerAngles = rotationVector;
 
         // Set AspectRatioFitter's ratio
-        //float videoRatio =
-        //    (float)activeCameraTexture.width / (float)activeCameraTexture.height;
-        //Debug.Log(videoRatio);
-        //imageFitter.aspectRatio = videoRatio;
+        float videoRatio =
+            (float)activeCameraTexture.width / (float)activeCameraTexture.height;
+        imageFitter.aspectRatio = videoRatio;
 
         // Unflip if vertically flipped
         image.uvRect =

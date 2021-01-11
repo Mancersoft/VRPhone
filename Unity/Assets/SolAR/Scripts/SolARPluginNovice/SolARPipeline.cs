@@ -15,6 +15,10 @@ namespace SolAR
 
         public DeviceCameraScript deviceCameraScript;
         public PhoneManagerScript phoneManagerScript;
+        public SocketIOSignaler socketSignalerScript;
+
+        public GameObject findDeviceCanvas;
+        public GameObject cardboardLoader;
 
         public bool isScanning;
         public bool isMarkerFound;
@@ -107,8 +111,12 @@ namespace SolAR
         }
 
         private float distLerpTime = 0;
-        private Vector3 curPos = Vector3.zero; 
+        private Vector3 curPos = Vector3.zero;
         private Vector3 prevPos = Vector3.zero;
+
+        private long prevTimestamp = -1;
+        private Quaternion currentRotation = Quaternion.identity;
+
         private float rotLerpTime = 0;
         private Quaternion curRot = Quaternion.identity;
         private Quaternion prevRot = Quaternion.identity;
@@ -160,10 +168,12 @@ namespace SolAR
                         if (!isMarkerFound)
                         {
                             isMarkerFound = true;
+                            findDeviceCanvas.SetActive(false);
+                            cardboardLoader.SetActive(true);
                             deviceCameraScript.gameObject.SetActive(false);
                             phoneManagerScript.ChangeVisibility(true);
                         }
-                        
+
                         Matrix4x4 cameraPoseFromSolAR = new Matrix4x4();
 
                         cameraPoseFromSolAR.SetRow(0, new Vector4(pose.rotation().coeff(0, 0), pose.rotation().coeff(0, 1), pose.rotation().coeff(0, 2), pose.translation().coeff(0, 0)));
@@ -192,9 +202,11 @@ namespace SolAR
                         m_PrevSolARObj.parent = m_RotationControl;
                         m_RotationControl.localRotation = Quaternion.identity;
                         m_PrevSolARObj.parent = prevParent;
+
+
                         m_PrevSolARObj.rotation = Quaternion.Inverse(rotation);
-                        m_PrevSolARObj.Rotate(new Vector3(-90, 0, 0), Space.Self);
-                        m_PrevSolARObj.Rotate(new Vector3(0, -180, 0), Space.Self);
+                        //m_PrevSolARObj.Rotate(new Vector3(-90, 0, 0), Space.Self);
+                        //m_PrevSolARObj.Rotate(new Vector3(0, -180, 0), Space.Self);
 
                         //m_PrevSolARObj.Rotate(Camera.main.transform.eulerAngles, Space.Self);
                         //m_PrevSolARObj.Rotate(new Vector3(0, 0, -Camera.main.transform.rotation.eulerAngles.y), Space.Self);
@@ -206,9 +218,9 @@ namespace SolAR
 
                         var posDist = Vector3.Distance(m_SolARObj.position, m_PrevSolARObj.position);
                         var rotDist = Quaternion.Angle(m_SolARObj.rotation, m_PrevSolARObj.rotation);
-                        
 
-                        
+
+
                         float distLerpStatus = (Time.time - distLerpTime) * lerpSpeed;
                         float rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
                         ////var angleDifferences = GetAngleDifferences(m_SolARObj.rotation, m_PrevSolARObj.rotation);
@@ -221,7 +233,7 @@ namespace SolAR
                             curPos = m_SolARObj.position;
                             prevPos = m_PrevSolARObj.position;
                         }
-                        if ((rotDist >= 10) && rotLerpStatus >= 1) 
+                        if ((rotDist >= 10) && rotLerpStatus >= 1)
                         {
                             //Debug.Log("Rot dist: " + rotDist);
                             ////Debug.Log("angle: " + angleDifferences);
@@ -316,7 +328,7 @@ namespace SolAR
             IntPtr ptr = Marshal.UnsafeAddrOfPinnedArrayElement(array_imageData, 0);
             m_pipelineManager.start(ptr);  //IntPtr
 
-            deviceCameraScript.UpdateScreenParams();
+            //deviceCameraScript.UpdateScreenParams();
             //StartCoroutine(deviceCameraScript.UpdateScreenParamsCoroutine());
             UpdateReady = true;
         }
