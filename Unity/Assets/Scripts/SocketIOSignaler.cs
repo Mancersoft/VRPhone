@@ -56,7 +56,10 @@ public class SocketIOSignaler : Signaler
 
     public void Connect()
     {
+        var prevSocket = socket;
         socket.url = $"ws://{signalingServerIp}:9092/socket.io/?EIO=4&transport=websocket";
+        socket = Instantiate(socket);
+        Destroy(prevSocket.gameObject);
         socket.On("id", OnId);
         socket.On("remoteId", OnRemoteId);
         socket.On("message", OnMessage);
@@ -67,8 +70,28 @@ public class SocketIOSignaler : Signaler
             //Debug.Log("socket state error ");
         });
         socket.Connect();
-        Debug.Log("socket start connect");
+        Debug.Log($"socket start connect to {socket.url}");
     }
+
+    //private IEnumerator ConnectCoroutine()
+    //{
+    //    socket.gameObject.SetActive(false);
+    //    yield return null;
+    //    socket.url = $"ws://{signalingServerIp}:9092/socket.io/?EIO=4&transport=websocket";
+    //    socket.gameObject.SetActive(true);
+    //    yield return null;
+    //    socket.On("id", OnId);
+    //    socket.On("remoteId", OnRemoteId);
+    //    socket.On("message", OnMessage);
+    //    socket.On("connect", (ev) => { Debug.Log("socket state connect"); });
+    //    socket.On("disconnect", (ev) => { Debug.Log("socket state disconnect"); });
+    //    socket.On("connect", (ev) => { Debug.Log("socket state connect"); });
+    //    socket.On("error", (ev) => {
+    //        //Debug.Log("socket state error ");
+    //    });
+    //    socket.Connect();
+    //    Debug.Log($"socket start connect to {socket.url}");
+    //}
 
     private void OnId(SocketIOEvent ev)
     {
