@@ -1,5 +1,5 @@
 
-package fr.pchab.androidrtc;
+package com.mancersoft.androidrtc;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -26,12 +26,12 @@ import org.webrtc.VideoCapturer;
 import static android.content.ContentValues.TAG;
 
 public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
-    private WebRtcClient mWebRtcClient;
+
     private static final int CAPTURE_PERMISSION_REQUEST_CODE = 1;
     private static Intent mMediaProjectionPermissionResultData;
     private static int mMediaProjectionPermissionResultCode;
 
-    public static String STREAM_NAME_PREFIX = "android_device_stream";
+    public static final String STREAM_NAME_PREFIX = "android_device_stream";
     private static final String[] MANDATORY_PERMISSIONS = {
             "android.permission.MODIFY_AUDIO_SETTINGS",
             "android.permission.RECORD_AUDIO",
@@ -42,6 +42,8 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     public static final int SCREEN_RESOLUTION_SCALE = 2;
 
     private static final String QR_CODE_KEY = "SCREEN_CAPTURE_IP=";
+
+    public static WebRtcClient mWebRtcClient;
 
     private TextView textViewIp;
     private ImageView imageViewQrCode;
@@ -81,6 +83,10 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         sDeviceWidth = metrics.widthPixels;
         sDeviceHeight = metrics.heightPixels;
         qrCodeSize = Math.min(sDeviceWidth, sDeviceHeight);
+
+        Utils.setRealDeviceSize(this);
+        Log.d(WebRtcClient.TAG, "width: " + Utils.deviceParamsMessage.width + "; height: " +
+                Utils.deviceParamsMessage.height + "; ratio: " + Utils.deviceParamsMessage.ratio);
 
         textViewIp = findViewById(R.id.textViewIp);
         imageViewQrCode = findViewById(R.id.imageViewQrCode);

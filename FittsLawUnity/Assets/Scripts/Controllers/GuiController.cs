@@ -20,7 +20,7 @@ public class GuiController : MonoBehaviour
     [SerializeField] private Transform _foveRig;
     [SerializeField] private Dropdown _vrHmdInput;
     [SerializeField] private InputField _participantCodeInput;
-    [SerializeField] private InputField _conditionCodeInput;
+    [SerializeField] private Dropdown _conditionCodeInput;
     [SerializeField] private InputField _blockCodeInput;
     [SerializeField] private Dropdown _numberOfTargetsInput;
     [SerializeField] private InputField _targetAmplitudesInput;
@@ -32,7 +32,7 @@ public class GuiController : MonoBehaviour
     [SerializeField] private InputField _dwellTimeInput;
     [SerializeField] private InputField _timeoutInput;
     [SerializeField] private InputField _eyeSmoothFactorInput;
-    [SerializeField] private InputField _mouseSensivityInput;
+    [SerializeField] private Dropdown _scaleFactorInput;
     [SerializeField] private Toggle _randomizeTargetConiditionsInput;
     [SerializeField] private Toggle _beepOnErrorInput;
     [SerializeField] private Toggle _showCursorInput;
@@ -90,20 +90,20 @@ public class GuiController : MonoBehaviour
         }
         //If no saved string exists, initiate GUI with the default values below
         _vrHmdInput.value = 2; //1;
-        _participantCodeInput.text = "";
-        _conditionCodeInput.text = "";
-        _blockCodeInput.text = "";
-        _numberOfTargetsInput.value = 1;
+        _participantCodeInput.text = StudyManager.Instance.ParticipantId;
+        _conditionCodeInput.value = (int) StudyManager.Instance.Condition;
+        _blockCodeInput.text = StudyManager.Instance.BlockId;
+        _numberOfTargetsInput.value = 0;
         _targetAmplitudesInput.text = "265 326 163 224 203 409 458 467";
         _targetWidthsInput.text = "200 200 80 80 40 60 60 40";
         _errorThresholdInput.text = "15";
         _spatialHysteresisInput.text = "2.0";
         _controlMethodInput.value = 7; //1;
         _confirmationMethodInput.value = 0;
-        _dwellTimeInput.text = "300";
+        _dwellTimeInput.text = "100";
         _timeoutInput.text = "10000";
         _eyeSmoothFactorInput.text = "5";
-        _mouseSensivityInput.text = "10";
+        _scaleFactorInput.value = 0;
         _backgroundColorPicker.CurrentColour = new Color32(214, 214, 214, 255); //new Color32(35, 23, 10, 255);
         _targetColorPicker.CurrentColour = Color.black; //new Color32(29, 11, 40, 255);
         _cursorColorPicker.CurrentColour = Color.blue; //new Color32(52, 0, 0, 255);
@@ -121,7 +121,7 @@ public class GuiController : MonoBehaviour
         _dataValidationSuccessful = true;
         _vrHmd = (TestBlock.VRHMD) _vrHmdInput.value;
         _participantCode = _participantCodeInput.text;
-        _conditionCode = _conditionCodeInput.text;
+        _conditionCode = _conditionCodeInput.options[_conditionCodeInput.value].text;
         _blockCode = _blockCodeInput.text;
         _randomizeTargetConditions = _randomizeTargetConiditionsInput.isOn;
 
@@ -170,7 +170,8 @@ public class GuiController : MonoBehaviour
         Int32.TryParse(_dwellTimeInput.text, out _dwellTime);
         Int32.TryParse(_timeoutInput.text, out _timeout);
         Int32.TryParse(_eyeSmoothFactorInput.text, out _eyeSmoothFactor);
-        float.TryParse(_mouseSensivityInput.text, out _mouseSensivity);
+        float.TryParse(_scaleFactorInput.options[_scaleFactorInput.value].text, out _mouseSensivity);
+        Debug.Log(_mouseSensivity);
         _beepOnError = _beepOnErrorInput.isOn;
         _showCursor = _showCursorInput.isOn;
         _hoverHighlight = _hoverHighlightInput.isOn;
@@ -206,7 +207,7 @@ public class GuiController : MonoBehaviour
     /// <returns>Returns the complete string.</returns>
     private string GenerateSaveString()
     {
-        string saveString =  "" + _conditionCodeInput.text + ";" + _blockCodeInput.text + ";" + _numberOfTargetsInput.value + ";";
+        string saveString =  "" + _conditionCodeInput.options[_conditionCodeInput.value].text + ";" + _blockCodeInput.text + ";" + _numberOfTargetsInput.value + ";";
         for (int i = 0; i < _targetAmplitudes.Count; i++)
         {
             saveString += _targetAmplitudes[i];
@@ -242,8 +243,16 @@ public class GuiController : MonoBehaviour
     private void LoadDataFromString(string loadString)
     {
         string[] data = loadString.Split(';');
+        int condValue = 0;
+        try
+        {
+            condValue = (int)(StudyManager.Conditions)Enum.Parse(typeof(StudyManager.Conditions), data[0]);
+        }
+        catch
+        {
+        }
 
-        _conditionCodeInput.text = data[0];
+        _conditionCodeInput.value = condValue;
         _blockCodeInput.text = data[1];
         _numberOfTargetsInput.value = int.Parse(data[2]);
 
@@ -270,7 +279,8 @@ public class GuiController : MonoBehaviour
         _dwellTimeInput.text = data[9];
         _timeoutInput.text = data[10];
         _eyeSmoothFactorInput.text = data[11];
-        _mouseSensivityInput.text = data[12];
+        _scaleFactorInput.value = 
+            _scaleFactorInput.options.IndexOf(_scaleFactorInput.options.FirstOrDefault((el) => el.text == data[12]) ?? _scaleFactorInput.options.First());
         _randomizeTargetConiditionsInput.isOn = bool.Parse(data[13]);
         _beepOnErrorInput.isOn = bool.Parse(data[14]);
         _showCursorInput.isOn = bool.Parse(data[15]);
@@ -309,8 +319,11 @@ public class GuiController : MonoBehaviour
     public void RunExperiment()
     {
         LoadData();
-        if(_dataValidationSuccessful)
-        SceneManager.LoadScene(1);
+        if (_dataValidationSuccessful)
+        {
+            StudyManager.Instance.SetParams(_participantCodeInput.text, _blockCodeInput.text, (StudyManager.Conditions)_conditionCodeInput.value);
+            SceneManager.LoadScene(1);
+        }
     }
 
     /// <summary>
@@ -354,7 +367,7 @@ public class GuiController : MonoBehaviour
         //Reset UI values to defaults
         _vrHmdInput.value = 1;
         _participantCodeInput.text = "";
-        _conditionCodeInput.text = "";
+        _conditionCodeInput.value = 0;
         _blockCodeInput.text = "";
         _numberOfTargetsInput.value = 1;
         _targetAmplitudesInput.text = "80 120";
@@ -366,7 +379,7 @@ public class GuiController : MonoBehaviour
         _dwellTimeInput.text = "300";
         _timeoutInput.text = "10000";
         _eyeSmoothFactorInput.text = "5";
-        _mouseSensivityInput.text = "10";
+        _scaleFactorInput.value = 0;
         _backgroundColorPicker.CurrentColour = new Color32(35, 23, 10, 255);
         _targetColorPicker.CurrentColour = new Color32(29, 11, 40, 255);
         _cursorColorPicker.CurrentColour = new Color32(52, 0, 0, 255);

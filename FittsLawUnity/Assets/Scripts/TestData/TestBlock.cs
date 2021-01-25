@@ -119,14 +119,21 @@ public class TestBlock {
 
         Sequences = new List<TestSequence>();
         int trialnumber = 0;
-        foreach (int amplitude in TargetAmplitudes)
+
+        for (int i = 0; i < TargetAmplitudes.Count; ++i)
         {
-            foreach (float diameter in targetDiameters)
-            {
-                Sequences.Add(new TestSequence(trialnumber, amplitude, diameter, NumberOfTargets));
-                trialnumber++;
-            }
+            Sequences.Add(new TestSequence(trialnumber, TargetAmplitudes[i], targetDiameters[i], NumberOfTargets));
+            trialnumber++;
         }
+
+        //foreach (int amplitude in TargetAmplitudes)
+        //{
+        //    foreach (float diameter in targetDiameters)
+        //    {
+        //        Sequences.Add(new TestSequence(trialnumber, amplitude, diameter, NumberOfTargets));
+        //        trialnumber++;
+        //    }
+        //}
     }
     
     public List<Vector2> GetTrialCenterError() {

@@ -115,7 +115,7 @@ public class GvrEditorEmulator : MonoBehaviour
             }
 
             mouseY -= Input.GetAxis(AXIS_MOUSE_Y) * 2.4f;
-            mouseY = Mathf.Clamp(mouseY, -85, 85);
+            //mouseY = Mathf.Clamp(mouseY, -85, 85);
         }
         else if (CanChangeRoll())
         {

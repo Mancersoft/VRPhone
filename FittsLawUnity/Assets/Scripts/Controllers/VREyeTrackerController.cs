@@ -5,6 +5,7 @@ using Fove;
 using UnityEngine.UI;
 using Unity3DRudder;
 using WheelchairSerialConnect;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// This class handles eye-tracking for the selected VRHMD.
@@ -93,7 +94,13 @@ public class VREyeTrackerController : MonoBehaviour {
         _currentHeadVelocity = checkPoint - _lastHeadVelPoint;
         _lastHeadVelPoint = checkPoint;
         if (Input.GetKeyDown(KeyCode.Escape))
-            Application.Quit();
+        {
+            TestController.Instance.StopTest();
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+            SceneManager.LoadScene(0);
+            //Application.Quit();
+        }
     }
 
     //Shut down 3DRudder (foot pedal) thread
@@ -276,11 +283,15 @@ public class VREyeTrackerController : MonoBehaviour {
 
     private void TrackFinger()
     {
+#if !UNITY_EDITOR
         if (Input.touchCount > 0)
         {
             var touch = Input.GetTouch(0);
             _gazeCursor.SetPositionFromFinger(touch.position.x, touch.position.y);
         }
+#else
+        TrackMouse();
+#endif
     }
 
     /// <summary>

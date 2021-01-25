@@ -9,7 +9,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "fr.pchab.androidrtc"
+        applicationId "com.mancersoft.androidrtc"
         minSdkVersion 20
         targetSdkVersion 30
         versionCode 1
@@ -41,4 +41,5 @@ dependencies {
     implementation files('libs/base_java.jar')
     implementation files('libs/libjingle_peerconnection.jar')
     implementation 'com.google.zxing:core:3.4.1'
+    implementation 'com.google.code.gson:gson:2.8.6'
 }

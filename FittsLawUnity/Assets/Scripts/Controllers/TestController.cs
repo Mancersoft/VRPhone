@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Pupil;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Valve.VR;
 using DxCalculationSet = TestDataHelper.DxCalculationSet;
@@ -26,12 +27,12 @@ public class TestController : MonoBehaviour
     [SerializeField] private Camera _viveCanvasCamera;
     [SerializeField] private Camera _foveCanvasCamera;
 
-    [SerializeField] private GameObject _startSequenceButton;
-
     public static TestController Instance;
     public bool IsRunning { get; private set; }
     public TestBlock TestBlockData { get; private set; }
     public EyeGazeTarget CurrentTarget { get; private set; }
+
+    public float VerticalShift { get; private set; }
 
     private DBController _dbController;
     private VREyeTrackerController _vrEyeTrackerController;
@@ -72,7 +73,6 @@ public class TestController : MonoBehaviour
         _dbController = DBController.Instance;
         _pupilGazeTracker = FindObjectOfType<PupilGazeTracker>();
         _pressStartText.enabled = true;
-        _startSequenceButton.SetActive(true);
         //If data is stored from TestLoader scene, use that
         if (_storedTestBlock != null)
             LoadTestData(_storedTestBlock);
@@ -81,16 +81,78 @@ public class TestController : MonoBehaviour
             LoadTestData(new TestBlock(TestBlock.VRHMD.NoHMD, "TestBlockData", "TestParticipant", "TestCondition", 11, new List<int>() {80}, new List<float>() { 50, 50 }, 100, 2, 
                 TestBlock.ControlMethod.Mouse, TestBlock.ConfirmationMethod.Click, 200, 80000, 5, 12, false, true, true, true, true, false,
                 new Color32(67, 67, 67, 255), Color.yellow, Color.black, new Color32(200, 200, 200, 255), new Color32(128, 128, 128, 255), Color.red));
+
+        VerticalShift = (Screen.height / 2) - TestBlockData.TargetAmplitudes.Max() - (TestBlockData.TargetDiameters.Max() / 2);
+#if !UNITY_EDITOR
+        VerticalShift = -VerticalShift;
+#endif
+
+        Helper.SendConditionBroadcast();
+
+#if UNITY_EDITOR
+        StartCoroutine(InputListener());
+#endif
+
+        _vrEyeTrackerController.StartTrackingMovement();
+        Cursor.lockState = CursorLockMode.Locked;
+        GazeCursor.Instance.SetEnabled(_showCursor);
     }
 
-    public void OnStartSequenceClick()
+
+    private float doubleClickTimeLimit = 0.5f;
+    private float variancePosition = 10;
+
+    // Update is called once per frame
+    private IEnumerator InputListener()
     {
-        startSequenceClicked = true;
-        _startSequenceButton.SetActive(false);
+        while (enabled)
+        { //Run as long as this is activ
+
+            if (Input.GetMouseButtonDown(0))
+                yield return ClickEvent();
+
+            yield return null;
+        }
+    }
+
+    private IEnumerator ClickEvent()
+    {
+        //pause a frame so you don't pick up the same mouse down event.
+        yield return new WaitForEndOfFrame();
+        float count = 0f;
+        while (count < doubleClickTimeLimit)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                DoubleClick();
+                yield break;
+            }
+            count += Time.deltaTime;// increment counter by change in time between frames
+            yield return null; // wait for the next frame
+        }
+        SingleClick();
+    }
+
+
+    private void SingleClick()
+    {
+    }
+
+    private void DoubleClick()
+    {
+        if (!IsRunning)
+        {
+            startSequenceClicked = true;
+        }
     }
 
     void Update()
     {
+        if (Input.touchCount > 0 && Input.GetTouch(0).tapCount > 1)
+        {
+            DoubleClick();
+        }
+
         if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.JoystickButton7) || startSequenceClicked)
         {
             startSequenceClicked = false;
@@ -215,7 +277,6 @@ public class TestController : MonoBehaviour
         if (IsRunning) return;
         _errorThresholdText.enabled = false;
         _pressStartText.enabled = false;
-        _startSequenceButton.SetActive(false);
 
         _sequenceIndex++;
         if (_sequenceIndex >= TestBlockData.Sequences.Count) return;
@@ -253,7 +314,6 @@ public class TestController : MonoBehaviour
         else
         {
             _pressStartText.enabled = true;
-            _startSequenceButton.SetActive(true);
         }
     }
 
@@ -330,6 +390,10 @@ public class TestController : MonoBehaviour
         {
             SaveToDb();
             Debug.Log("----Test Data Saved To Database----");
+
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+            SceneManager.LoadScene(0);
         }
     }
 
@@ -492,7 +556,12 @@ public class TestController : MonoBehaviour
 
     private void SaveToDb()
     {
-        _dbController.InsertTestResults(TestBlockData.CreateDTO());
+        var dataDto = TestBlockData.CreateDTO();
+        _dbController.InsertTestResults(dataDto);
+
+        string data = JsonUtility.ToJson(dataDto);
+
+        StudyManager.Instance.SendData(data);
     }
 
     public static void StoreTestData(TestBlock blockToStore)
@@ -505,11 +574,8 @@ public class TestController : MonoBehaviour
         angle -= 90;
         float x = amplitude * Mathf.Cos(-angle * Mathf.Deg2Rad);
         float y = amplitude * Mathf.Sin(-angle * Mathf.Deg2Rad);
-        float verticalShift = (Screen.height / 2) - TestBlockData.TargetAmplitudes.Max() - (TestBlockData.TargetDiameters.Max() / 2);
-#if !UNITY_EDITOR
-        verticalShift = -verticalShift;
-#endif
-        return new Vector2(x, y + verticalShift);
+
+        return new Vector2(x, y + VerticalShift);
     }
 
     public void StartVerification()

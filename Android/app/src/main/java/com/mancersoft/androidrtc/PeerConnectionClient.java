@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fr.pchab.androidrtc;
+package com.mancersoft.androidrtc;
 
 
 /**

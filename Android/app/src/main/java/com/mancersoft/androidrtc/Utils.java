@@ -1,22 +1,42 @@
-package fr.pchab.androidrtc;
+package com.mancersoft.androidrtc;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Point;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
+import com.google.gson.Gson;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import org.webrtc.DataChannel;
+
 import java.net.Inet4Address;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 
 public final class Utils {
+
+    public static void sendObjViaDataChannel(Object obj) {
+        String objStr = new Gson().toJson(obj);
+        byte[] objBytes = objStr.getBytes(StandardCharsets.UTF_8);
+        WebRtcClient.Peer peer = RtcActivity.mWebRtcClient.peers.entrySet().iterator().next().getValue();
+        DataChannel dataChannel = peer.dataChannel;
+        if (dataChannel != null && dataChannel.state() == DataChannel.State.OPEN) {
+            dataChannel.send(new DataChannel.Buffer(ByteBuffer.wrap(objBytes), true));
+        }
+    }
 
     @Nullable
     public static String getDeviceIpAddress() {
@@ -81,5 +101,58 @@ public final class Utils {
             Log.d("IP Address", "getLocalIpAddress Error: " + ex.getMessage());
         }
         return null;
+    }
+
+    public static DeviceParamsMessage deviceParamsMessage;
+
+    @SuppressWarnings("deprecation")
+    public static void setRealDeviceSize(Activity activity) {
+        WindowManager windowManager = activity.getWindowManager();
+        Display display = windowManager.getDefaultDisplay();
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        display.getMetrics(displayMetrics);
+
+        Point size = new Point(displayMetrics.widthPixels, displayMetrics.heightPixels);
+        DisplayMetrics dm = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
+        try {
+            Point realSize = new Point();
+            Display.class.getMethod("getRealSize", Point.class).invoke(display, realSize);
+            size = realSize;
+        } catch (Exception ignored) {
+        }
+
+        deviceParamsMessage = new DeviceParamsMessage();
+        deviceParamsMessage.width = size.x / dm.xdpi;
+        deviceParamsMessage.height = size.y / dm.ydpi;
+        deviceParamsMessage.ratio = size.y / (float) size.x;
+    }
+
+    public static final String CONDITION_TYPE = "CONDITION";
+    public static final String DEVICE_PARAMS_TYPE = "DEVICE_PARAMS";
+
+    public static class ConditionMessage {
+        public String type;
+        public int value;
+        public ConditionMessage(int value) {
+            type = CONDITION_TYPE;
+            this.value = value;
+        }
+    }
+
+    public static class DeviceParamsMessage {
+        public String type;
+        public float width;
+        public float height;
+        public float ratio;
+        public DeviceParamsMessage()
+        {
+        }
+        public DeviceParamsMessage(float width, float height, float ratio) {
+            type = DEVICE_PARAMS_TYPE;
+            this.width = width;
+            this.height = height;
+            this.ratio = ratio;
+        }
     }
 }

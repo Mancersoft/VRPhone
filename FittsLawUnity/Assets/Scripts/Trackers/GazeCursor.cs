@@ -81,6 +81,9 @@ public class GazeCursor : MonoBehaviour
         _mouse = new Vector2(0, 0);
 
         _canvasSize = new Vector2(_canvas.pixelRect.width, _canvas.pixelRect.height);
+#if UNITY_EDITOR
+        _canvasSize *= 1 / _canvas.scaleFactor;
+#endif
     }
 
     /// <summary>
@@ -141,6 +144,8 @@ public class GazeCursor : MonoBehaviour
         _image.enabled = isEnabled;
     }
 
+    private Vector3 prevMousePos = Vector3.zero;
+
     /// <summary>
     /// Calculates and sets the cursor position within the canvas when using the mouse or wheelchair control method.
     /// </summary>
@@ -148,18 +153,25 @@ public class GazeCursor : MonoBehaviour
     /// <param name="deltaY"> Y coordinate of new mouse position.</param>
     public void SetPositionFromMouse(float deltaX, float deltaY)
     {
-        _previousPosition = new Vector2(_cursor.localPosition.x, _cursor.localPosition.y);
-        _mouse = new Vector2(_previousPosition.x + deltaX * MouseSensitivity,
-            _previousPosition.y + deltaY * MouseSensitivity);
+        float mouseSens = 10;
+        _previousPosition = new Vector2(prevMousePos.x, prevMousePos.y);
+        _mouse = new Vector2(_previousPosition.x + deltaX * mouseSens,
+            _previousPosition.y + deltaY * mouseSens);
         _mouse = new Vector2(Mathf.Clamp(_mouse.x, -_canvasSize.x / 2, _canvasSize.x / 2),
             Mathf.Clamp(_mouse.y, -_canvasSize.y / 2, _canvasSize.y / 2));
-        _cursor.localPosition = new Vector3(_mouse.x, _mouse.y, _cursor.localPosition.z);
+        prevMousePos = new Vector3(_mouse.x, _mouse.y, prevMousePos.z);
+
+        float verticalShift = TestController.Instance.VerticalShift;
+        _cursor.localPosition = new Vector3(_mouse.x * MouseSensitivity, (_mouse.y - verticalShift) * MouseSensitivity + verticalShift, prevMousePos.z);
     }
 
     public void SetPositionFromFinger(float x, float y)
     {
         var fingerPos = new Vector2(Mathf.Clamp(x, 0, _canvasSize.x), Mathf.Clamp(y, 0, _canvasSize.y));
-        _cursor.localPosition = new Vector3(fingerPos.x - _canvasSize.x / 2, fingerPos.y - _canvasSize.y / 2, _cursor.localPosition.z);
+        
+        fingerPos = new Vector3(fingerPos.x - _canvasSize.x / 2, fingerPos.y - _canvasSize.y / 2 - TestController.Instance.VerticalShift, _cursor.localPosition.z);
+        fingerPos = new Vector3(fingerPos.x * MouseSensitivity, fingerPos.y * MouseSensitivity, _cursor.localPosition.z);
+        _cursor.localPosition = new Vector3(fingerPos.x, fingerPos.y + TestController.Instance.VerticalShift, _cursor.localPosition.z);
     }
 
     /// <summary>

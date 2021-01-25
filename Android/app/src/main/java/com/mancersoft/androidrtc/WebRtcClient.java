@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fr.pchab.androidrtc;
+package com.mancersoft.androidrtc;
 
 import android.content.Context;
 import android.util.Log;
@@ -45,11 +45,11 @@ import java.util.LinkedList;
 public class WebRtcClient {
 
     public static final String VIDEO_TRACK_ID = "ARDAMSv0";
-    private final static String TAG = "WebRtcClient";
+    public final static String TAG = "WebRtcClient";
     private final static int MAX_PEER = 2;
     private boolean[] endPoints = new boolean[MAX_PEER];
     private PeerConnectionFactory factory;
-    private HashMap<String, Peer> peers = new HashMap<>();
+    public HashMap<String, Peer> peers = new HashMap<>();
     private LinkedList<PeerConnection.IceServer> iceServers = new LinkedList<>();
     private PeerConnectionClient.PeerConnectionParameters mPeerConnParams;
     private MediaConstraints mPeerConnConstraints = new MediaConstraints();
@@ -200,6 +200,8 @@ public class WebRtcClient {
         public String id;
         public int endPoint;
 
+        public DataChannel dataChannel;
+
         @Override
         public void onCreateSuccess(final SessionDescription sdp) {
             // TODO: modify sdp to use mPeerConnParams preferred codecs
@@ -303,6 +305,12 @@ public class WebRtcClient {
         peers.put(id, peer);
 
         endPoints[endPoint] = true;
+
+        DataChannel.Init dataChannelParams = new DataChannel.Init();
+        dataChannelParams.negotiated = false;
+        dataChannelParams.ordered = true;
+        dataChannelParams.protocol = "TCP";
+        peer.dataChannel = peer.pc.createDataChannel("params", dataChannelParams);
         return peer;
     }
 

@@ -4,6 +4,7 @@ using SocketIO;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -56,6 +57,7 @@ public class SocketIOSignaler : Signaler
 
     public void Connect()
     {
+        _nativePeer.DataChannelAdded += OnDataChannelAdded;
         var prevSocket = socket;
         socket.url = $"ws://{signalingServerIp}:9092/socket.io/?EIO=4&transport=websocket";
         socket = Instantiate(socket);
@@ -73,25 +75,33 @@ public class SocketIOSignaler : Signaler
         Debug.Log($"socket start connect to {socket.url}");
     }
 
-    //private IEnumerator ConnectCoroutine()
-    //{
-    //    socket.gameObject.SetActive(false);
-    //    yield return null;
-    //    socket.url = $"ws://{signalingServerIp}:9092/socket.io/?EIO=4&transport=websocket";
-    //    socket.gameObject.SetActive(true);
-    //    yield return null;
-    //    socket.On("id", OnId);
-    //    socket.On("remoteId", OnRemoteId);
-    //    socket.On("message", OnMessage);
-    //    socket.On("connect", (ev) => { Debug.Log("socket state connect"); });
-    //    socket.On("disconnect", (ev) => { Debug.Log("socket state disconnect"); });
-    //    socket.On("connect", (ev) => { Debug.Log("socket state connect"); });
-    //    socket.On("error", (ev) => {
-    //        //Debug.Log("socket state error ");
-    //    });
-    //    socket.Connect();
-    //    Debug.Log($"socket start connect to {socket.url}");
-    //}
+
+    private void OnDataChannelAdded(DataChannel channel)
+    {
+        channel.MessageReceived += OnDataChannelMessageReceived;
+    }
+
+    private void OnDataChannelMessageReceived(byte[] data)
+    {
+        string dataStr = Encoding.UTF8.GetString(data);
+        Debug.Log("Received data channel message: " + dataStr);
+        JSONObject obj = JSONObject.Create(dataStr);
+        switch (GetString(obj, "type"))
+        {
+            case "CONDITION":
+                var condition = (StudyManager.Conditions)GetInt(obj, "value");
+                Debug.Log("Experiment condition: " + condition);
+                StudyManager.Instance.SetContiditon(condition);
+                break;
+            case "DEVICE_PARAMS":
+                float width = GetFloat(obj, "width");
+                float height = GetFloat(obj, "height");
+                float ratio = GetFloat(obj, "ratio");
+                StudyManager.Instance.SetScreenAndPhoneSize(width, height, ratio);
+                break;
+        }
+    }
+
 
     private void OnId(SocketIOEvent ev)
     {
@@ -110,16 +120,23 @@ public class SocketIOSignaler : Signaler
 
     public static string GetString(JSONObject jObject, string name)
     {
-        string str = null;
-        jObject.GetField(ref str, name);
-        return str;
+        string field = null;
+        jObject.GetField(ref field, name);
+        return field;
     }
 
     private static int GetInt(JSONObject jObject, string name)
     {
-        int str = 0;
-        jObject.GetField(ref str, name);
-        return str;
+        int field = 0;
+        jObject.GetField(ref field, name);
+        return field;
+    }
+
+    private static float GetFloat(JSONObject jObject, string name)
+    {
+        float field = 0;
+        jObject.GetField(ref field, name);
+        return field;
     }
 
     private void OnMessage(SocketIOEvent ev)

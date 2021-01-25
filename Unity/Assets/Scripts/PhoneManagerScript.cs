@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PhoneManagerScript : MonoBehaviour
 {
+    public GameObject screen;
+
     private void Start()
     {
         ChangeVisibility(false);
@@ -20,6 +22,18 @@ public class PhoneManagerScript : MonoBehaviour
                 renderer.enabled = isVisible;
                 collider.enabled = isVisible;
             }
+        }
+
+        var screenRenderer = screen.GetComponent<Renderer>();
+        if (screenRenderer != null)
+        {
+            screenRenderer.enabled = isVisible;
+        }
+
+        var screenCollider = screen.GetComponent<Collider>();
+        if (screenCollider != null)
+        {
+            screenCollider.enabled = isVisible;
         }
     }
 }

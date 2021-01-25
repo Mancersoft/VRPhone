@@ -1,4 +1,4 @@
-package fr.pchab.androidrtc;
+package com.mancersoft.androidrtc;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -6,9 +6,10 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.ServiceInfo;
 import android.graphics.Color;
 import android.os.Build;
-import android.os.Debug;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -19,10 +20,12 @@ import androidx.annotation.RequiresApi;
 
 public class MyForegroundService extends Service {
 
-    private SignalingServer signalingServer;
-
     public static final String SERVICE_STARTED = "SERVICE_STARTED";
     public static final String SERVICE_START_FAILED = "SERVICE_START_FAILED";
+
+    private SignalingServer signalingServer;
+
+    private ConditionReceiver conditionReceiver;
 
     @Nullable
     @Override
@@ -33,6 +36,14 @@ public class MyForegroundService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        if (conditionReceiver != null) {
+            unregisterReceiver(conditionReceiver);
+        }
+
+        conditionReceiver = new ConditionReceiver();
+        registerReceiver(conditionReceiver, new IntentFilter(ConditionReceiver.ACTION));
+
         startForeground();
     }
 
@@ -87,6 +98,10 @@ public class MyForegroundService extends Service {
             signalingServer.stop();
         }
 
+        if (conditionReceiver != null) {
+            unregisterReceiver(conditionReceiver);
+        }
+
         super.onDestroy();
     }
 
@@ -104,7 +119,11 @@ public class MyForegroundService extends Service {
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setPriority(Notification.PRIORITY_MAX)
                 .build();
-        startForeground(101, notification);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(101, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION);
+        } else {
+            startForeground(101, notification);
+        }
     }
 
 

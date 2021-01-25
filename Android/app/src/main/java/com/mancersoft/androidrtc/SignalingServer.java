@@ -1,4 +1,4 @@
-package fr.pchab.androidrtc;
+package com.mancersoft.androidrtc;
 
 import android.util.Log;
 

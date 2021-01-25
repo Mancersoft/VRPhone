@@ -136,7 +136,21 @@ namespace SolAR
         ////    return res <= 180 ? res : 360 - res;
         ////}
 
+        private static float ClampAngle(float angle)
+        {
+            float returnAngle = angle;
 
+            if (angle < 0f)
+                returnAngle = (angle + (360f * ((angle / 360f) + 1)));
+
+            else if (angle > 360f)
+                returnAngle = (angle - (360f * (angle / 360f)));
+
+            else if (returnAngle == 360) //Never use 360, only go from 0 to 359
+                returnAngle = 0;
+
+            return returnAngle;
+        }
 
         void Update()
         {
@@ -190,7 +204,6 @@ namespace SolAR
 
                         Vector3 forward = new Vector3(unityCameraPose.m02, unityCameraPose.m12, unityCameraPose.m22);
                         Vector3 up = new Vector3(unityCameraPose.m01, unityCameraPose.m11, unityCameraPose.m21);
-
                         var rotation = Quaternion.LookRotation(forward, -up);
                         var position = -new Vector3(unityCameraPose.m03, unityCameraPose.m13, unityCameraPose.m23);
 
@@ -215,6 +228,13 @@ namespace SolAR
                         m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.up, Camera.main.transform.rotation.eulerAngles.y);
                         //m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.forward, Camera.main.transform.rotation.eulerAngles.z);
                         //m_PrevSolARObj.Rotate(new Vector3(0, -Camera.main.transform.rotation.eulerAngles.x, 0), Space.Self);
+
+
+                        if (Vector3.Angle(Vector3.up, Camera.main.transform.up) > 90)
+                        {
+                            m_PrevSolARObj.rotation = m_SolARObj.rotation;
+                        }
+
 
                         var posDist = Vector3.Distance(m_SolARObj.position, m_PrevSolARObj.position);
                         var rotDist = Quaternion.Angle(m_SolARObj.rotation, m_PrevSolARObj.rotation);
