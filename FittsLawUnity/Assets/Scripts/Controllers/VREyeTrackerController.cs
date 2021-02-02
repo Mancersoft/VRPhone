@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Fove;
 using UnityEngine.UI;
-using Unity3DRudder;
+//using Unity3DRudder;
 using WheelchairSerialConnect;
 using UnityEngine.SceneManagement;
 
@@ -60,11 +60,11 @@ public class VREyeTrackerController : MonoBehaviour {
     private LineRenderer _lineRenderer;
     private PupilGazeTracker _pupilTracker;
     private FoveInterface _foveInterface;
-    private ns3DRudder.ModeAxis _modeAxis = ns3DRudder.ModeAxis.NormalizedValueNonSymmetricalPitch;
+    //private ns3DRudder.ModeAxis _modeAxis = ns3DRudder.ModeAxis.NormalizedValueNonSymmetricalPitch;
     private Connector connector;
 
-    protected Rudder Rudder;
-    protected ns3DRudder.Axis Axis;
+    //protected Rudder Rudder;
+    //protected ns3DRudder.Axis Axis;
 
     void Awake() {
         VRCamera = GetComponent<Camera>();
@@ -83,7 +83,7 @@ public class VREyeTrackerController : MonoBehaviour {
     void Start() {
         _gazeCursor = GazeCursor.Instance;
         _testController = TestController.Instance;
-        Rudder = s3DRudderManager.Instance.GetRudder(0);
+        //Rudder = s3DRudderManager.Instance.GetRudder(0);
         connector = Connector.getInstance();
         connector.AutoConnect();
         _pupilTracker.SetShowDot(false);
@@ -105,7 +105,7 @@ public class VREyeTrackerController : MonoBehaviour {
 
     //Shut down 3DRudder (foot pedal) thread
     void OnApplicationQuit() {
-        s3DRudderManager.Instance.ShutDown();
+        //s3DRudderManager.Instance.ShutDown();
         if (connector != null)
             connector.Disconnect();
     }
@@ -317,8 +317,8 @@ public class VREyeTrackerController : MonoBehaviour {
     /// Since the experiment is 2D, it only requires two axes from the pedal so this control method is mechanically identical to the xbox joystick method.
     /// </summary>
     private void TrackFootpedal() {
-        Axis = Rudder.GetAxis(_modeAxis);
-        _gazeCursor.SetPositionFromJoystick(-Axis.GetXAxis(), -Axis.GetYAxis());
+        //Axis = Rudder.GetAxis(_modeAxis);
+        //_gazeCursor.SetPositionFromJoystick(-Axis.GetXAxis(), -Axis.GetYAxis());
     }
 
     /// <summary>

@@ -22,6 +22,10 @@ public class DBController : MonoBehaviour
 
     void Awake() {
         Instance = this;
+
+        this.enabled = false;
+        return;
+
         // Create database if it doesn't exist.
         if (!File.Exists(FILELOCATION))
         {

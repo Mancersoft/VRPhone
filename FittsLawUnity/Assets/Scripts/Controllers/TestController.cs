@@ -72,7 +72,6 @@ public class TestController : MonoBehaviour
     void Start () {
         _dbController = DBController.Instance;
         _pupilGazeTracker = FindObjectOfType<PupilGazeTracker>();
-        _pressStartText.enabled = true;
         //If data is stored from TestLoader scene, use that
         if (_storedTestBlock != null)
             LoadTestData(_storedTestBlock);
@@ -96,8 +95,20 @@ public class TestController : MonoBehaviour
         _vrEyeTrackerController.StartTrackingMovement();
         Cursor.lockState = CursorLockMode.Locked;
         GazeCursor.Instance.SetEnabled(_showCursor);
+
+        SetStartText();
+        _pressStartText.enabled = true;
     }
 
+    private void SetStartText()
+    {
+        _pressStartText.text = "Double tap to start sequence" +
+            "\nStudy number: " + StudyManager.Instance.StudyNumber +
+            "\nCondition: " + StudyManager.Instance.Condition +
+            "\nScale factor: " + StudyManager.Instance.ScaleFactor +
+            "\nBlock: " + StudyManager.Instance.BlockId +
+            "\nSequence: " + (_sequenceIndex + 2);
+    }
 
     private float doubleClickTimeLimit = 0.5f;
     private float variancePosition = 10;
@@ -313,6 +324,7 @@ public class TestController : MonoBehaviour
         }
         else
         {
+            SetStartText();
             _pressStartText.enabled = true;
         }
     }
@@ -366,6 +378,9 @@ public class TestController : MonoBehaviour
             TestBlockData.Sequences[_sequenceIndex].EffectiveAmplitude = TestDataHelper.Mean(aes);
             TestBlockData.Sequences[_sequenceIndex].EffectiveTargetWidth = TestDataHelper.CalculateEffectiveWidth(dxs);
             TestBlockData.Sequences[_sequenceIndex].EffecttiveIndexOfDifficulty = TestDataHelper.CalculateEffectiveDifficultyIndex(aes, TestBlockData.Sequences[_sequenceIndex].EffectiveTargetWidth);
+
+            StudyManager.Instance.AddLogDetail(TestBlockData, _sequenceIndex);
+            
             ClearInitialTargets();
             StopTest();
         }
@@ -386,15 +401,18 @@ public class TestController : MonoBehaviour
         TestBlockData.CalculateMeanMovementTime();
         TestBlockData.CalculateErrorRate();
 
-        if (_useDB)
-        {
-            SaveToDb();
-            Debug.Log("----Test Data Saved To Database----");
+        //if (_useDB)
+        //{
+        //    SaveToDb();
+        //    Debug.Log("----Test Data Saved To Database----");
+        //}
 
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-            SceneManager.LoadScene(0);
-        }
+        StudyManager.Instance.AddLogGeneral(TestBlockData);
+        Debug.Log("Evaluating block ended");
+        //Cursor.visible = true;
+        //Cursor.lockState = CursorLockMode.None;
+        //SendToEmail();
+        StudyManager.Instance.StartChangeBlock();
     }
 
     private void NextStep()
@@ -558,15 +576,12 @@ public class TestController : MonoBehaviour
     {
         var dataDto = TestBlockData.CreateDTO();
         _dbController.InsertTestResults(dataDto);
-
-        string data = JsonUtility.ToJson(dataDto);
-
-        StudyManager.Instance.SendData(data);
     }
 
     public static void StoreTestData(TestBlock blockToStore)
     {
         _storedTestBlock = blockToStore;
+        StudyManager.Instance.initBlock = blockToStore;
     }
 
     public Vector2 GetTargetSpawnPosition(float amplitude, float angle)

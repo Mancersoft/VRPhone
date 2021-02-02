@@ -32,6 +32,7 @@ public class GuiController : MonoBehaviour
     [SerializeField] private InputField _dwellTimeInput;
     [SerializeField] private InputField _timeoutInput;
     [SerializeField] private InputField _eyeSmoothFactorInput;
+    [SerializeField] private Dropdown _studyNumberInput;
     [SerializeField] private Dropdown _scaleFactorInput;
     [SerializeField] private Toggle _randomizeTargetConiditionsInput;
     [SerializeField] private Toggle _beepOnErrorInput;
@@ -39,6 +40,7 @@ public class GuiController : MonoBehaviour
     [SerializeField] private Toggle _hoverHighlightInput;
     [SerializeField] private Toggle _buttonDownHighlightInput;
     [SerializeField] private Toggle _recordGazePositionInput;
+    [SerializeField] private Toggle _isTestInput;
     [SerializeField] private ColorPickerButton _backgroundColorPicker;
     [SerializeField] private ColorPickerButton _cursorColorPicker;
     [SerializeField] private ColorPickerButton _targetColorPicker;
@@ -46,35 +48,35 @@ public class GuiController : MonoBehaviour
     [SerializeField] private ColorPickerButton _hoverColorPicker;
     [SerializeField] private ColorPickerButton _readyForGestureColorPicker;
 
-    private TestBlock.VRHMD _vrHmd;
-    private string _participantCode;
-    private string _conditionCode;
-    private string _blockCode;
-    private int _numberOfTargets;
-    private List<int> _targetAmplitudes;
-    private List<float> _targetWidths;
-    private float _errorThreshold;
-    private float _spatialHysteresis;
-    private TestBlock.ControlMethod _controlMethod;
-    private TestBlock.ConfirmationMethod _confirmationMethod;
-    private int _dwellTime;
-    private int _timeout;
-    private int _eyeSmoothFactor;
-    private float _mouseSensivity;
-    private bool _randomizeTargetConditions;
-    private bool _beepOnError;
-    private bool _showCursor;
-    private bool _hoverHighlight;
-    private bool _buttonDownHighlight;
-    private bool _recordGazePosition;
-    private Color _backgroundColor;
-    private Color _cursorColor;
-    private Color _targetColor;
-    private Color _buttonDownColor;
-    private Color _hoverColor;
-    private Color _readyForGestureColor;
-    private bool _dataValidationSuccessful;
-    private string _filePath;
+    public TestBlock.VRHMD _vrHmd;
+    public string _participantCode;
+    public string _conditionCode;
+    public string _blockCode;
+    public int _numberOfTargets;
+    public List<int> _targetAmplitudes;
+    public List<float> _targetWidths;
+    public float _errorThreshold;
+    public float _spatialHysteresis;
+    public TestBlock.ControlMethod _controlMethod;
+    public TestBlock.ConfirmationMethod _confirmationMethod;
+    public int _dwellTime;
+    public int _timeout;
+    public int _eyeSmoothFactor;
+    public float _mouseSensivity;
+    public bool _randomizeTargetConditions;
+    public bool _beepOnError;
+    public bool _showCursor;
+    public bool _hoverHighlight;
+    public bool _buttonDownHighlight;
+    public bool _recordGazePosition;
+    public Color _backgroundColor;
+    public Color _cursorColor;
+    public Color _targetColor;
+    public Color _buttonDownColor;
+    public Color _hoverColor;
+    public Color _readyForGestureColor;
+    public bool _dataValidationSuccessful;
+    public string _filePath;
 
     [SerializeField] private Canvas _vrCanvas;
 
@@ -82,22 +84,22 @@ public class GuiController : MonoBehaviour
     {
         Screen.orientation = ScreenOrientation.Portrait;
         //If a saved string exists, load GUI values from it
-        _filePath = Application.persistentDataPath + @"\SavedSetup.txt";
-        if (File.Exists(_filePath))
-        {
-            LoadDataFromString(System.IO.File.ReadAllText(_filePath));
-            return;
-        }
+        //_filePath = Application.persistentDataPath + @"\SavedSetup.txt";
+        //if (File.Exists(_filePath))
+        //{
+        //    LoadDataFromString(System.IO.File.ReadAllText(_filePath));
+        //    return;
+        //}
         //If no saved string exists, initiate GUI with the default values below
-        _vrHmdInput.value = 2; //1;
+        _vrHmdInput.value = 2;
         _participantCodeInput.text = StudyManager.Instance.ParticipantId;
-        _conditionCodeInput.value = (int) StudyManager.Instance.Condition;
+        _conditionCodeInput.value = (int)StudyManager.Instance.Condition;
         _blockCodeInput.text = StudyManager.Instance.BlockId;
         _numberOfTargetsInput.value = 0;
         _targetAmplitudesInput.text = "265 326 163 224 203 409 458 467";
         _targetWidthsInput.text = "200 200 80 80 40 60 60 40";
         _errorThresholdInput.text = "15";
-        _spatialHysteresisInput.text = "2.0";
+        _spatialHysteresisInput.text = "1.0";
         _controlMethodInput.value = 7; //1;
         _confirmationMethodInput.value = 0;
         _dwellTimeInput.text = "100";
@@ -318,10 +320,18 @@ public class GuiController : MonoBehaviour
     /// </summary>
     public void RunExperiment()
     {
+        Debug.Log("RunExperiment");
         LoadData();
         if (_dataValidationSuccessful)
         {
-            StudyManager.Instance.SetParams(_participantCodeInput.text, _blockCodeInput.text, (StudyManager.Conditions)_conditionCodeInput.value);
+            Debug.Log("DataValidationSuccessful");
+            StudyManager.Instance.SetParams(
+                _participantCodeInput.text,
+                _blockCodeInput.text,
+                (StudyManager.Conditions)_conditionCodeInput.value,
+                (StudyManager.StudyEnum)_studyNumberInput.value,
+                float.Parse(_scaleFactorInput.options[_scaleFactorInput.value].text),
+                _isTestInput.isOn);
             SceneManager.LoadScene(1);
         }
     }

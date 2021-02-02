@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
-using ns3DRudder;
 using UnityEngine.UI;
 
 /// <summary>
