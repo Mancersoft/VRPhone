@@ -96,9 +96,9 @@ public class GuiController : MonoBehaviour
         _conditionCodeInput.value = (int)StudyManager.Instance.Condition;
         _blockCodeInput.text = StudyManager.Instance.BlockId;
         _numberOfTargetsInput.value = 0;
-        _targetAmplitudesInput.text = "265 326 163 224 203 409 458 467";
-        _targetWidthsInput.text = "200 200 80 80 40 60 60 40";
-        _errorThresholdInput.text = "15";
+        _targetAmplitudesInput.text = StudyManager.TargetAmplitudesStudy1;
+        _targetWidthsInput.text = StudyManager.TargetWidthsStudy1;
+        _errorThresholdInput.text = "50";
         _spatialHysteresisInput.text = "1.0";
         _controlMethodInput.value = 7; //1;
         _confirmationMethodInput.value = 0;
@@ -321,6 +321,16 @@ public class GuiController : MonoBehaviour
     public void RunExperiment()
     {
         Debug.Log("RunExperiment");
+        if ((StudyManager.StudyEnum)_studyNumberInput.value == StudyManager.StudyEnum.Study1)
+        {
+            _targetAmplitudesInput.text = StudyManager.TargetAmplitudesStudy1;
+            _targetWidthsInput.text = StudyManager.TargetWidthsStudy1;
+        } else
+        {
+            _targetAmplitudesInput.text = StudyManager.TargetAmplitudesStudy2;
+            _targetWidthsInput.text = StudyManager.TargetWidthsStudy2;
+        }
+
         LoadData();
         if (_dataValidationSuccessful)
         {

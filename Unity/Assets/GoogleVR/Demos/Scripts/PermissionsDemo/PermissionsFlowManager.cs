@@ -23,17 +23,19 @@ namespace GoogleVR.PermissionsDemo
     using UnityEngine.UI;
 
 #if UNITY_ANDROID || UNITY_EDITOR
-    /// <summary>Manages the permission flow in PermissionsDemo.</summary>
     public class PermissionsFlowManager : MonoBehaviour
     {
-        /// <summary>A text field which informs the user of permissions flow status.</summary>
-        /// <remarks>Modified by methods in this class.</remarks>
-        public Text statusText;
-
-        private static string[] permissionNames = { "android.permission.READ_EXTERNAL_STORAGE" };
+        private static string[] permissionNames = { "android.permission.CAMERA" };
 
         private static List<GvrPermissionsRequester.PermissionStatus> permissionList =
             new List<GvrPermissionsRequester.PermissionStatus>();
+
+        void Start()
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            RequestPermissions();
+#endif
+        }
 
         /// <summary>
         /// Checks whether all necessary external permissions have been granted and informs user of
@@ -41,16 +43,16 @@ namespace GoogleVR.PermissionsDemo
         /// </summary>
         public void CheckPermission()
         {
-            statusText.text = "Checking permission....";
+            Debug.Log("Checking permission....");
             GvrPermissionsRequester permissionRequester = GvrPermissionsRequester.Instance;
             if (permissionRequester != null)
             {
                 bool granted = permissionRequester.IsPermissionGranted(permissionNames[0]);
-                statusText.text = permissionNames[0] + ": " + (granted ? "Granted" : "Denied");
+                Debug.Log(permissionNames[0] + ": " + (granted ? "Granted" : "Denied"));
             }
             else
             {
-                statusText.text = "Permission requester cannot be initialized.";
+                Debug.Log("Permission requester cannot be initialized.");
             }
         }
 
@@ -63,15 +65,12 @@ namespace GoogleVR.PermissionsDemo
         /// </remarks>
         public void RequestPermissions()
         {
-            if (statusText != null)
-            {
-                statusText.text = "Requesting permission....";
-            }
+            Debug.Log("Requesting permission....");
 
             GvrPermissionsRequester permissionRequester = GvrPermissionsRequester.Instance;
             if (permissionRequester == null)
             {
-                statusText.text = "Permission requester cannot be initialized.";
+                Debug.Log("Permission requester cannot be initialized.");
                 return;
             }
 
@@ -80,17 +79,10 @@ namespace GoogleVR.PermissionsDemo
             {
                 Debug.Log("Permissions.RequestPermisions: Permission has not been previously " +
                           "granted");
-                if (permissionRequester.ShouldShowRational(permissionNames[0]))
-                {
-                    statusText.text = "This game needs to access external storage.  Please grant " +
-                                      "permission when prompted.";
-                    statusText.color = Color.red;
-                }
 
                 permissionRequester.RequestPermissions(permissionNames,
                     (GvrPermissionsRequester.PermissionStatus[] permissionResults) =>
                     {
-                        statusText.color = Color.cyan;
                         permissionList.Clear();
                         permissionList.AddRange(permissionResults);
                         string msg = "";
@@ -99,12 +91,12 @@ namespace GoogleVR.PermissionsDemo
                             msg += p.Name + ": " + (p.Granted ? "Granted" : "Denied") + "\n";
                         }
 
-                        statusText.text = msg;
+                        Debug.Log(msg);
                     });
             }
             else
             {
-                statusText.text = "ExternalStorage permission already granted!";
+                Debug.Log("Permission already granted!");
             }
         }
     }

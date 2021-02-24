@@ -15,5 +15,10 @@ public class CardboardLoaderScript : MonoBehaviour
         XRSettings.LoadDeviceByName(newDevice);
         yield return null;
         XRSettings.enabled = true;
+        yield return null;
+        Screen.orientation = ScreenOrientation.Landscape;
+        Screen.orientation = ScreenOrientation.AutoRotation;
+        Screen.autorotateToPortrait = false;
+        Screen.autorotateToPortraitUpsideDown = false;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Android;
 using UnityEngine.UI;
 
 public class DeviceCameraScript : MonoBehaviour
@@ -13,11 +14,15 @@ public class DeviceCameraScript : MonoBehaviour
 
     public SolARPipeline solarScript;
 
+    public AndroidPermissionManager permissionManager;
+
     public GameObject[] objectsToDeactivate;
 
     public WebCamTexture activeCameraTexture;
 
     private WebCamDevice activeCameraDevice;
+
+    private bool isInitialized = false;
 
     // Image rotation
     Vector3 rotationVector = new Vector3(0f, 0f, 0f);
@@ -49,7 +54,7 @@ public class DeviceCameraScript : MonoBehaviour
         }
     }
 
-    void Start()
+    public void CamerasInit()
     {
         // Check for device cameras
         if (WebCamTexture.devices.Length == 0)
@@ -78,6 +83,19 @@ public class DeviceCameraScript : MonoBehaviour
     // guaranteed to report correct data as soon as device camera is started
     void Update()
     {
+        if (!isInitialized)
+        {
+#if PLATFORM_ANDROID
+            if (!Permission.HasUserAuthorizedPermission(Permission.Camera))
+            {
+                return;
+            }
+#endif
+            isInitialized = true;
+            CamerasInit();
+            return;
+        }
+
         // Skip making adjustment for incorrect camera data
         if (activeCameraTexture.width < 100)
         {

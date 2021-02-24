@@ -47,9 +47,18 @@ public class StudyManager : MonoBehaviour {
 
 	public bool isTest = true;
 
-	private string logDataGeneral = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, StartTime, VRHMD, ErrorThreshold, SelectedControlMethod, SelectedConfirmationMethod, DwellTime, Timeout, ScaleFactor, MovementTime, ErrorRate, Throughput";
+	private string logDataGeneral;
 
-	private string logDataDetail = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, SequenceNumber, IoD, W, A, IoDe, We, Ae, StartTime, VRHMD, ErrorThreshold, SelectedControlMethod, SelectedConfirmationMethod, DwellTime, Timeout, ScaleFactor, MovementTime, ErrorRate, Throughput";
+	private string logDataDetail;
+
+	private string logDataTrials;
+
+	private void InitLogs()
+    {
+		logDataGeneral = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, StartTime, VRHMD, ErrorThreshold, SelectedControlMethod, SelectedConfirmationMethod, DwellTime, Timeout, ScaleFactor, MovementTime, ErrorRate, Throughput";
+		logDataDetail = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, SequenceNumber, IoD, W, A, IoDe, We, Ae, StartTime, VRHMD, ErrorThreshold, SelectedControlMethod, SelectedConfirmationMethod, DwellTime, Timeout, ScaleFactor, MovementTime, ErrorRate, Throughput";
+		logDataTrials = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, ScaleFactor, SequenceNumber, TrialNumber, TargetAngle, StartTime, TotalCursorMovement, TimeToActivate, TimeToFixate, TargetCenterErrorX, TargetCenterErrorY, TimedOut, Error";
+	}
 
 	public void AddLogGeneral(TestBlock testBlock)
     {
@@ -84,6 +93,24 @@ public class StudyManager : MonoBehaviour {
 			testSequence.MovementTime.ToString(), testSequence.ErrorRate.ToString(), testSequence.Throughput.ToString()});
 	}
 
+	public void AddLogTrial(TestBlock testBlock, int sequenceIndex, int trialNumber)
+    {
+		if (isTest)
+		{
+			return;
+		}
+
+		TestSequence testSequence = testBlock.Sequences[sequenceIndex];
+		TestTrial trial = testSequence.Trials[trialNumber];
+		logDataTrials += "\n" + string.Join(", ", new string[] { testBlock.ParticipantCode, testBlock.BlockCode, StudyNumber.ToString(),
+			testBlock.ConditionCode, testBlock.MouseSensivity.ToString(), testSequence.SequenceNumber.ToString(),
+			trial.TrialNumber.ToString(), trial.TargetAngle.ToString(),
+			trial.StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"),
+			trial.TotalCursorMovement.ToString(), trial.TimeToActivate.ToString(),
+			trial.TimeToFixate.ToString(), trial.TargetCenterError.x.ToString(), trial.TargetCenterError.y.ToString(),
+			trial.TimedOut.ToString(), trial.Error.ToString()});
+	}
+
 	void Awake()
     {
 		if (Instance != null)
@@ -105,8 +132,15 @@ public class StudyManager : MonoBehaviour {
 
 	private readonly float[] ScaleFactors = new float[] { 1f, 1.2f, 1.4f, 1.6f, 1.8f, 2.0f, 2.2f, 2.4f };
 
+	public const string TargetAmplitudesStudy1 =	"115 145 295 400 265 345 220 350 440 445";
+	public const string TargetWidthsStudy1 =		"100 100 160 160 80 80 40 50 50 40";
+
+	public const string TargetAmplitudesStudy2 =	"115 295 400 290 375 325 410 445";
+	public const string TargetWidthsStudy2 =		"100 160 160 80 80 50 50 40";
+
 	public void SetParams(string participantId, string blockId, Conditions condition, StudyEnum studyNumber, float scaleFactor, bool isTest)
     {
+		InitLogs();
 		this.isTest = isTest;
 		Debug.Log("Is test: " + isTest);
 		ParticipantId = participantId;
@@ -227,17 +261,44 @@ public class StudyManager : MonoBehaviour {
 		EmailSender.SmtpClient = "smtp.mail.yahoo.com";
 		EmailSender.SmtpPort = 587;
 
-		string filePathGeneral = WriteFileGetPath(logDataGeneral, false);
-		string filePathDetail = WriteFileGetPath(logDataDetail, true);
+		string filePathGeneral = WriteFileGetPath(logDataGeneral, LogType.General);
+		string filePathDetail = WriteFileGetPath(logDataDetail, LogType.Detail);
 
 		string body = "Email id: " + Guid.NewGuid() +  "\nPlease Find Below the Logs of the player " + ParticipantId + ", There is also a log file attached to this email.";
 
 		EmailSender.SendEmail("mancersoftfiles@gmail.com", "VRPhone PARTICIPANT DATA " + ParticipantId, body, false, new string[] { filePathGeneral, filePathDetail }, EmailSendCallback);
     }
 
-	private string WriteFileGetPath(string data, bool isDetail)
+	public void SaveLogFiles()
     {
-		string detail = isDetail ? "_Detail" : "";
+		WriteFileGetPath(logDataGeneral, LogType.General);
+		WriteFileGetPath(logDataDetail, LogType.Detail);
+		WriteFileGetPath(logDataTrials, LogType.Trials);
+	}
+
+	private enum LogType
+    {
+		General,
+		Detail,
+		Trials
+    }
+
+	private string WriteFileGetPath(string data, LogType logType)
+    {
+		string detail = "";
+		switch (logType)
+        {
+			case LogType.General:
+				detail = "_General";
+				break;
+			case LogType.Detail:
+				detail = "_Detail";
+				break;
+			case LogType.Trials:
+				detail = "_Trials";
+				break;
+        }
+
 		string outputTextPath = Application.persistentDataPath + "/" + "VRPhone_DATA_" + DateTime.Now.ToString("yyyy_MM_dd hh_mm_ss") + "_" + ParticipantId + detail + ".csv";
 
 		if (!File.Exists(outputTextPath))

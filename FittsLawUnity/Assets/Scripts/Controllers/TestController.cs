@@ -59,6 +59,9 @@ public class TestController : MonoBehaviour
     private List<TestVerification> _testVerifications;
     private Vector2 _activeVerificationTargetCoordinates;
 
+    private const float DOUBLE_TAP_DELAY_SECONDS = 1f;
+    private float pauseStartTime = 0f;
+
     private bool startSequenceClicked = false;
 
     void Awake()
@@ -96,18 +99,32 @@ public class TestController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         GazeCursor.Instance.SetEnabled(_showCursor);
 
-        SetStartText();
-        _pressStartText.enabled = true;
+        SetPause();
     }
 
-    private void SetStartText()
+    private void SetPause()
     {
-        _pressStartText.text = "Double tap to start sequence" +
-            "\nStudy number: " + StudyManager.Instance.StudyNumber +
-            "\nCondition: " + StudyManager.Instance.Condition +
-            "\nScale factor: " + StudyManager.Instance.ScaleFactor +
-            "\nBlock: " + StudyManager.Instance.BlockId +
-            "\nSequence: " + (_sequenceIndex + 2);
+        if (StudyManager.Instance.StudyNumber == StudyManager.StudyEnum.Study1
+            && int.Parse(StudyManager.Instance.BlockId.Substring(1)) == (StudyManager.Instance.Blocks.Count / 2) + 1
+            && _sequenceIndex + 2 == 1)
+        {
+            _pressStartText.text =
+                "First part of the study is over" +
+                "\nPut out the VR Box and fill the Google Form\n" +
+                "\nAfter that, continue and double tap to start the next condition sequence";
+        }
+        else
+        {
+            _pressStartText.text = "Double tap to start sequence" +
+                "\nStudy number: " + StudyManager.Instance.StudyNumber +
+                "\nCondition: " + StudyManager.Instance.Condition +
+                "\nScale factor: " + StudyManager.Instance.ScaleFactor +
+                "\nBlock: " + StudyManager.Instance.BlockId +
+                "\nSequence: " + (_sequenceIndex + 2);
+        }
+
+        _pressStartText.enabled = true;
+        pauseStartTime = Time.time;
     }
 
     private float doubleClickTimeLimit = 0.5f;
@@ -151,7 +168,7 @@ public class TestController : MonoBehaviour
 
     private void DoubleClick()
     {
-        if (!IsRunning)
+        if (!IsRunning && Time.time - pauseStartTime > DOUBLE_TAP_DELAY_SECONDS)
         {
             startSequenceClicked = true;
         }
@@ -324,8 +341,8 @@ public class TestController : MonoBehaviour
         }
         else
         {
-            SetStartText();
-            _pressStartText.enabled = true;
+            StudyManager.Instance.SaveLogFiles();
+            SetPause();
         }
     }
 
@@ -539,6 +556,9 @@ public class TestController : MonoBehaviour
         TestBlockData.Sequences[_sequenceIndex].Trials[_currentTrialNumber].TotalHeadMovement = _vrEyeTrackerController.TotalHeadMovement;
         TestBlockData.Sequences[_sequenceIndex].Trials[_currentTrialNumber].TotalCursorMovement = _totalCursorMovement;
         _vrEyeTrackerController.StopTrackingMovement();
+
+        StudyManager.Instance.AddLogTrial(TestBlockData, _sequenceIndex, _currentTrialNumber);
+
         NextStep();
     }
 

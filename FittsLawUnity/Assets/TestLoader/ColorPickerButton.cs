@@ -14,6 +14,11 @@ public class ColorPickerButton : MonoBehaviour
         get { return _currentColour; }
         set
         {
+            if (_background == null)
+            {
+                _background = GetComponent<Image>();
+            }
+
             _currentColour = value;
             _background.color = value;
         }

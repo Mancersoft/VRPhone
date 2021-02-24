@@ -100,7 +100,6 @@ namespace SolAR
 
         void Start()
         {
-            Screen.orientation = ScreenOrientation.LandscapeLeft;
 #if UNITY_ANDROID && !UNITY_EDITOR
             while (!Permission.HasUserAuthorizedPermission(Permission.Camera)) { Permission.RequestUserPermission(Permission.Camera); }
             Android.AndroidCloneResources(Application.streamingAssetsPath + "/SolAR/Android/android.xml");
@@ -163,11 +162,23 @@ namespace SolAR
                         m_webCamTexture.GetPixels32(data);
                         //data = GetScaledTexture().GetPixels32();
 
-                        for (int i = 0; i < data.Length; i++)
+                        if (Screen.orientation == ScreenOrientation.LandscapeRight)
                         {
-                            m_vidframe_byte[3 * i] = data[i].b;
-                            m_vidframe_byte[3 * i + 1] = data[i].g;
-                            m_vidframe_byte[3 * i + 2] = data[i].r;
+                            for (int i = 0; i < data.Length; i++)
+                            {
+                                m_vidframe_byte[3 * i] = data[data.Length - 1 - i].b;
+                                m_vidframe_byte[3 * i + 1] = data[data.Length - 1 - i].g;
+                                m_vidframe_byte[3 * i + 2] = data[data.Length - 1 - i].r;
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < data.Length; i++)
+                            {
+                                m_vidframe_byte[3 * i] = data[i].b;
+                                m_vidframe_byte[3 * i + 1] = data[i].g;
+                                m_vidframe_byte[3 * i + 2] = data[i].r;
+                            }
                         }
 
                         sourceTexture = Marshal.UnsafeAddrOfPinnedArrayElement(m_vidframe_byte, 0);
@@ -229,11 +240,15 @@ namespace SolAR
                         //m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.forward, Camera.main.transform.rotation.eulerAngles.z);
                         //m_PrevSolARObj.Rotate(new Vector3(0, -Camera.main.transform.rotation.eulerAngles.x, 0), Space.Self);
 
+                        ////if (Screen.orientation == ScreenOrientation.LandscapeRight)
+                        ////{
+                        ////    m_PrevSolARObj.rotation = Quaternion.Inverse(m_PrevSolARObj.rotation);
+                        ////}
 
-                        if (Vector3.Angle(Vector3.up, Camera.main.transform.up) > 90)
-                        {
-                            m_PrevSolARObj.rotation = m_SolARObj.rotation;
-                        }
+                        ////if (Vector3.Angle(Vector3.up, Camera.main.transform.up) > 90)
+                        ////{
+                        ////    m_PrevSolARObj.rotation = m_SolARObj.rotation;
+                        ////}
 
 
                         var posDist = Vector3.Distance(m_SolARObj.position, m_PrevSolARObj.position);

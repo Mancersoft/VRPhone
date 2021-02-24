@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static StudyManager;
 
 public class ScreenInputManager : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class ScreenInputManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            ////var condition = Instance.condition;
+            ////Instance.SetContiditon(condition == Conditions.Direct ? Conditions.Indirect : Conditions.Direct);
             Application.Quit();
         }
     }
