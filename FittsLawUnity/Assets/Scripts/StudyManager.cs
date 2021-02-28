@@ -53,11 +53,14 @@ public class StudyManager : MonoBehaviour {
 
 	private string logDataTrials;
 
+	private string studyStartTime = "";
+
 	private void InitLogs()
     {
 		logDataGeneral = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, StartTime, VRHMD, ErrorThreshold, SelectedControlMethod, SelectedConfirmationMethod, DwellTime, Timeout, ScaleFactor, MovementTime, ErrorRate, Throughput";
 		logDataDetail = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, SequenceNumber, IoD, W, A, IoDe, We, Ae, StartTime, VRHMD, ErrorThreshold, SelectedControlMethod, SelectedConfirmationMethod, DwellTime, Timeout, ScaleFactor, MovementTime, ErrorRate, Throughput";
 		logDataTrials = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, ScaleFactor, SequenceNumber, TrialNumber, TargetAngle, StartTime, TotalCursorMovement, TimeToActivate, TimeToFixate, TargetCenterErrorX, TargetCenterErrorY, TimedOut, Error";
+		studyStartTime = DateTime.Now.ToString("yyyy_MM_dd hh_mm_ss");
 	}
 
 	public void AddLogGeneral(TestBlock testBlock)
@@ -144,21 +147,19 @@ public class StudyManager : MonoBehaviour {
 		this.isTest = isTest;
 		Debug.Log("Is test: " + isTest);
 		ParticipantId = participantId;
-		PlayerPrefs.SetInt("ParticipantId", ParticipantId.Length < 2 ? 0 : int.Parse(ParticipantId.Substring(1)));
 		BlockId = blockId;
-		PlayerPrefs.SetInt("BlockId", BlockId.Length < 2 ? 0 : int.Parse(BlockId.Substring(1)));
 		Condition = condition;
 		StudyNumber = studyNumber;
 		ScaleFactor = scaleFactor;
 
-		int participantIdInt = PlayerPrefs.GetInt("ParticipantId", 0);
-		int blockIdInt = PlayerPrefs.GetInt("BlockId", 1);
+		int participantIdInt = int.Parse(ParticipantId.Substring(1));
+		int blockIdInt = int.Parse(BlockId.Substring(1));
 		switch (studyNumber)
         {
 			case StudyEnum.Study1:
 				Blocks = new List<StudyBlock>();
 				int conditionBlockCount = Study1BlockCount / 2;
-				var currCondition = participantIdInt / 2 != 0 ? Conditions.Direct : Conditions.Indirect;
+				var currCondition = Condition;
 				for (int i = 0; i < conditionBlockCount; ++i)
                 {
 					Blocks.Add(new StudyBlock
@@ -299,11 +300,11 @@ public class StudyManager : MonoBehaviour {
 				break;
         }
 
-		string outputTextPath = Application.persistentDataPath + "/" + "VRPhone_DATA_" + DateTime.Now.ToString("yyyy_MM_dd hh_mm_ss") + "_" + ParticipantId + detail + ".csv";
+		string outputTextPath = Application.persistentDataPath + "/" + "VRPhone_DATA_" + studyStartTime + "_" + ParticipantId + detail + ".csv";
 
 		if (!File.Exists(outputTextPath))
 		{
-			File.WriteAllText(outputTextPath, DateTime.Now.ToString("yyyy_MM_dd hh_mm_ss") + "_" + ParticipantId + " \n\n");
+			File.WriteAllText(outputTextPath, studyStartTime + "_" + ParticipantId + " \n\n");
 		}
 
 		File.AppendAllText(outputTextPath, data);
