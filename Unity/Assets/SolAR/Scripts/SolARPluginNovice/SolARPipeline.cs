@@ -23,6 +23,8 @@ namespace SolAR
         public bool isScanning;
         public bool isMarkerFound;
 
+        public float cameraXShift;
+
         #region Variables
         //#####################################################
         [HideInInspector]
@@ -249,6 +251,15 @@ namespace SolAR
                         ////{
                         ////    m_PrevSolARObj.rotation = m_SolARObj.rotation;
                         ////}
+
+                        if (Screen.orientation == ScreenOrientation.LandscapeRight)
+                        {
+                            m_PrevSolARObj.position -= new Vector3(cameraXShift, 0, 0);
+                        }
+                        else
+                        {
+                            m_PrevSolARObj.position += new Vector3(cameraXShift, 0, 0);
+                        }
 
 
                         var posDist = Vector3.Distance(m_SolARObj.position, m_PrevSolARObj.position);

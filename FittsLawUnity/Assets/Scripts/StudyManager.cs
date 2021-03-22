@@ -301,13 +301,7 @@ public class StudyManager : MonoBehaviour {
         }
 
 		string outputTextPath = Application.persistentDataPath + "/" + "VRPhone_DATA_" + studyStartTime + "_" + ParticipantId + detail + ".csv";
-
-		if (!File.Exists(outputTextPath))
-		{
-			File.WriteAllText(outputTextPath, studyStartTime + "_" + ParticipantId + " \n\n");
-		}
-
-		File.AppendAllText(outputTextPath, data);
+		File.WriteAllText(outputTextPath, data);
 		return outputTextPath;
 	}
 

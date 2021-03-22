@@ -463,6 +463,11 @@ PrefabInstance:
       objectReference: {fileID: 889329154}
     - target: {fileID: 8997161845923243914, guid: 37f082361edc9064ba18b144c5e661ce,
         type: 3}
+      propertyPath: cameraXShift
+      value: -0.0614
+      objectReference: {fileID: 0}
+    - target: {fileID: 8997161845923243914, guid: 37f082361edc9064ba18b144c5e661ce,
+        type: 3}
       propertyPath: m_PrevSolARObj
       value: 
       objectReference: {fileID: 1725064734}
