@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using SolAR.Datastructure;
 using UnityEngine.Android;
+using System.Collections;
 
 namespace SolAR
 {
@@ -262,15 +263,26 @@ namespace SolAR
                         }
 
 
+                        if (socketSignalerScript.gyroDataTimestamp == 0)
+                        {
+                            var rotDist = Quaternion.Angle(m_SolARObj.rotation, m_PrevSolARObj.rotation);
+                            float rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
+                            if ((rotDist >= 10) && rotLerpStatus >= 1)
+                            {
+                                //Debug.Log("Rot dist: " + rotDist);
+                                ////Debug.Log("angle: " + angleDifferences);
+                                //m_SolARObj.rotation = m_PrevSolARObj.rotation;
+                                rotLerpTime = Time.time;
+                                curRot = m_SolARObj.rotation;
+                                prevRot = m_PrevSolARObj.rotation;
+                            }
+                            rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
+                            m_SolARObj.rotation = Quaternion.Lerp(curRot, prevRot, rotLerpStatus);
+                        }
+
                         var posDist = Vector3.Distance(m_SolARObj.position, m_PrevSolARObj.position);
-                        var rotDist = Quaternion.Angle(m_SolARObj.rotation, m_PrevSolARObj.rotation);
-
-
-
                         float distLerpStatus = (Time.time - distLerpTime) * lerpSpeed;
-                        float rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
                         ////var angleDifferences = GetAngleDifferences(m_SolARObj.rotation, m_PrevSolARObj.rotation);
-
                         if (posDist >= 0.008 && distLerpStatus >= 1)
                         {
                             //Debug.Log("Pos dist: " + posDist);
@@ -279,24 +291,19 @@ namespace SolAR
                             curPos = m_SolARObj.position;
                             prevPos = m_PrevSolARObj.position;
                         }
-                        if ((rotDist >= 10) && rotLerpStatus >= 1)
-                        {
-                            //Debug.Log("Rot dist: " + rotDist);
-                            ////Debug.Log("angle: " + angleDifferences);
-                            //m_SolARObj.rotation = m_PrevSolARObj.rotation;
-                            rotLerpTime = Time.time;
-                            curRot = m_SolARObj.rotation;
-                            prevRot = m_PrevSolARObj.rotation;
-                        }
 
                         distLerpStatus = (Time.time - distLerpTime) * lerpSpeed;
-                        rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
-
                         m_SolARObj.position = Vector3.Lerp(curPos, prevPos, distLerpStatus);
-                        m_SolARObj.rotation = Quaternion.Lerp(curRot, prevRot, rotLerpStatus);
+                        
                     }
                 }
             }
+        }
+
+        public IEnumerator SetGyroRotationCoroutine()
+        {
+            m_SolARObj.rotation = socketSignalerScript.gyroQuaternion;
+            yield return null;
         }
 
         public void Init()

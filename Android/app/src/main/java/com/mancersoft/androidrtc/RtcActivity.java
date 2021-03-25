@@ -1,6 +1,7 @@
 
 package com.mancersoft.androidrtc;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -66,11 +67,12 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         }
     };
 
+    @SuppressLint("NewApi")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        //noinspection deprecation
+
         getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
                         | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
@@ -79,9 +81,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                         | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         setContentView(R.layout.activity_rtc);
         DisplayMetrics metrics = new DisplayMetrics();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            getDisplay().getRealMetrics(metrics);
-        }
+        getDisplay().getRealMetrics(metrics);
         sDeviceWidth = metrics.widthPixels;
         sDeviceHeight = metrics.heightPixels;
         qrCodeSize = Math.min(sDeviceWidth, sDeviceHeight);

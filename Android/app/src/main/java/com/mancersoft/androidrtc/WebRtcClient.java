@@ -200,7 +200,8 @@ public class WebRtcClient {
         public String id;
         public int endPoint;
 
-        public DataChannel dataChannel;
+        public DataChannel tcpDataChannel;
+        public DataChannel udpDataChannel;
 
         @Override
         public void onCreateSuccess(final SessionDescription sdp) {
@@ -306,11 +307,18 @@ public class WebRtcClient {
 
         endPoints[endPoint] = true;
 
-        DataChannel.Init dataChannelParams = new DataChannel.Init();
-        dataChannelParams.negotiated = false;
-        dataChannelParams.ordered = true;
-        dataChannelParams.protocol = "TCP";
-        peer.dataChannel = peer.pc.createDataChannel("params", dataChannelParams);
+        DataChannel.Init tcpChannelParams = new DataChannel.Init();
+        tcpChannelParams.negotiated = false;
+        tcpChannelParams.ordered = true;
+        tcpChannelParams.protocol = "TCP";
+        peer.tcpDataChannel = peer.pc.createDataChannel("tcpDataChannel", tcpChannelParams);
+
+        DataChannel.Init udpChannelParams = new DataChannel.Init();
+        udpChannelParams.negotiated = false;
+        udpChannelParams.ordered = false;
+        udpChannelParams.protocol = "UDP";
+        peer.udpDataChannel = peer.pc.createDataChannel("udpDataChannel", udpChannelParams);
+
         return peer;
     }
 

@@ -32,7 +32,7 @@ public final class Utils {
         String objStr = new Gson().toJson(obj);
         byte[] objBytes = objStr.getBytes(StandardCharsets.UTF_8);
         WebRtcClient.Peer peer = RtcActivity.mWebRtcClient.peers.entrySet().iterator().next().getValue();
-        DataChannel dataChannel = peer.dataChannel;
+        DataChannel dataChannel = peer.tcpDataChannel;
         if (dataChannel != null && dataChannel.state() == DataChannel.State.OPEN) {
             dataChannel.send(new DataChannel.Buffer(ByteBuffer.wrap(objBytes), true));
         }
@@ -105,7 +105,6 @@ public final class Utils {
 
     public static DeviceParamsMessage deviceParamsMessage;
 
-    @SuppressWarnings("deprecation")
     public static void setRealDeviceSize(Activity activity) {
         WindowManager windowManager = activity.getWindowManager();
         Display display = windowManager.getDefaultDisplay();
@@ -126,6 +125,21 @@ public final class Utils {
         deviceParamsMessage.width = size.x / dm.xdpi;
         deviceParamsMessage.height = size.y / dm.ydpi;
         deviceParamsMessage.ratio = size.y / (float) size.x;
+    }
+
+    public static float[] getQuaternion(float[] rotationVector) {
+        float q0;
+        float q1 = rotationVector[0];
+        float q2 = rotationVector[1];
+        float q3 = rotationVector[2];
+        if (rotationVector.length >= 4) {
+            q0 = rotationVector[3];
+        } else {
+            q0 = 1 - q1 * q1 - q2 * q2 - q3 * q3;
+            q0 = (q0 > 0) ? (float) Math.sqrt(q0) : 0;
+        }
+
+        return new float[] { q0, q1, q2, q3 };
     }
 
     public static final String CONDITION_TYPE = "CONDITION";

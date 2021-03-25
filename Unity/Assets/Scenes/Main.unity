@@ -634,9 +634,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PeerConnection: {fileID: 114452440398351871}
   socket: {fileID: 920601394}
+  solarScript: {fileID: 513823101}
   localPeerId: 
   remotePeerId: _rXJLf7pFgzsdmEgAAAS
   signalingServerIp: 
+  gyroDataTimestamp: 0
+  gyroQuaternion: {x: 0, y: 0, z: 0, w: 1}
 --- !u!4 &462521549
 Transform:
   m_ObjectHideFlags: 0
@@ -2767,7 +2770,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2079933508}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -2775,7 +2778,7 @@ Transform:
   - {fileID: 543450653652655560}
   m_Father: {fileID: 580402929}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!114 &2079933510
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,6 +1,7 @@
 ﻿using Microsoft.MixedReality.WebRTC;
 using Microsoft.MixedReality.WebRTC.Unity;
 using SocketIO;
+using SolAR;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ public class SocketIOSignaler : Signaler
     private const string STREAM_NAME_PREFIX = "unity_stream";
 
     public SocketIOComponent socket;
+    public SolARPipeline solarScript;
 
     public string localPeerId;
 
@@ -24,6 +26,10 @@ public class SocketIOSignaler : Signaler
     //public WebcamSource webcamSource;
 
     public string signalingServerIp;
+
+    public long gyroDataTimestamp = 0;
+    public Quaternion gyroQuaternion = Quaternion.identity;
+    private Quaternion gyroInverse = Quaternion.identity;
 
     private Task SendIOMessage(string type, JSONObject payload)
     {
@@ -78,10 +84,19 @@ public class SocketIOSignaler : Signaler
 
     private void OnDataChannelAdded(DataChannel channel)
     {
-        channel.MessageReceived += OnDataChannelMessageReceived;
+        switch (channel.Label)
+        {
+            case "tcpDataChannel":
+                channel.MessageReceived += OnTcpDataChannelMessageReceived;
+                break;
+            case "udpDataChannel":
+                channel.MessageReceived += OnUdpDataChannelMessageReceived;
+                break;
+        }
+        
     }
 
-    private void OnDataChannelMessageReceived(byte[] data)
+    private void OnTcpDataChannelMessageReceived(byte[] data)
     {
         string dataStr = Encoding.UTF8.GetString(data);
         Debug.Log("Received data channel message: " + dataStr);
@@ -102,6 +117,47 @@ public class SocketIOSignaler : Signaler
         }
     }
 
+    private void OnUdpDataChannelMessageReceived(byte[] data)
+    {
+        if (BitConverter.IsLittleEndian)
+        {
+            Array.Reverse(data, 0, 8);
+            Array.Reverse(data, 8, 4);
+            Array.Reverse(data, 12, 4);
+            Array.Reverse(data, 16, 4);
+            Array.Reverse(data, 20, 4);
+        }
+
+        long timestamp = BitConverter.ToInt64(data, 0);
+        var quaternion = new Quaternion(
+            BitConverter.ToSingle(data, 12),
+            BitConverter.ToSingle(data, 16),
+            BitConverter.ToSingle(data, 20),
+            BitConverter.ToSingle(data, 8));
+        if (gyroInverse == Quaternion.identity)
+        {
+            gyroInverse = Quaternion.Inverse(quaternion);
+            gyroInverse.eulerAngles = new Vector3(0, 0, gyroInverse.eulerAngles.z);
+            return;
+        }
+
+        if (timestamp < gyroDataTimestamp)
+        {
+            return;
+        }
+
+        gyroDataTimestamp = timestamp;
+        gyroQuaternion = ConvertRightHandedToLeftHandedQuaternion(gyroInverse * quaternion);
+        UnityMainThreadDispatcher.Instance().Enqueue(solarScript.SetGyroRotationCoroutine());
+    }
+
+    private static Quaternion ConvertRightHandedToLeftHandedQuaternion(Quaternion rightHandedQuaternion)
+    {
+        return new Quaternion(-rightHandedQuaternion.x,
+            -rightHandedQuaternion.z,
+            -rightHandedQuaternion.y,
+            rightHandedQuaternion.w);
+    }
 
     private void OnId(SocketIOEvent ev)
     {

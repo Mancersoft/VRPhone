@@ -9,6 +9,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -18,14 +22,22 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-public class MyForegroundService extends Service {
+import org.webrtc.DataChannel;
+
+import java.nio.ByteBuffer;
+
+public class MyForegroundService extends Service implements SensorEventListener {
 
     public static final String SERVICE_STARTED = "SERVICE_STARTED";
     public static final String SERVICE_START_FAILED = "SERVICE_START_FAILED";
 
     private SignalingServer signalingServer;
 
+    private SensorManager sensorManager;
+
     private ConditionReceiver conditionReceiver;
+
+    private long lastTimestamp = 0;
 
     @Nullable
     @Override
@@ -43,6 +55,10 @@ public class MyForegroundService extends Service {
 
         conditionReceiver = new ConditionReceiver();
         registerReceiver(conditionReceiver, new IntentFilter(ConditionReceiver.ACTION));
+
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST);
 
         startForeground();
     }
@@ -102,6 +118,7 @@ public class MyForegroundService extends Service {
             unregisterReceiver(conditionReceiver);
         }
 
+        sensorManager.unregisterListener(this);
         super.onDestroy();
     }
 
@@ -139,4 +156,29 @@ public class MyForegroundService extends Service {
         return channelId;
     }
 
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR
+                && RtcActivity.mWebRtcClient != null
+                && RtcActivity.mWebRtcClient.peers.size() > 0
+                && event.timestamp > lastTimestamp) {
+            lastTimestamp = event.timestamp;
+            float[] quaternion = Utils.getQuaternion(event.values);
+            WebRtcClient.Peer peer = RtcActivity.mWebRtcClient.peers.entrySet().iterator().next().getValue();
+            DataChannel dataChannel = peer.udpDataChannel;
+            if (dataChannel != null && dataChannel.state() == DataChannel.State.OPEN) {
+                ByteBuffer data = ByteBuffer.allocate(8 + 4 * quaternion.length);
+                data.putLong(event.timestamp);
+                for (float v : quaternion) {
+                    data.putFloat(v);
+                }
+                byte[] dataArray = data.array();
+                dataChannel.send(new DataChannel.Buffer(ByteBuffer.wrap(dataArray), true));
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
 }
