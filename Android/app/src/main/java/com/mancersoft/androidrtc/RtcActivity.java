@@ -79,7 +79,9 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                         | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         setContentView(R.layout.activity_rtc);
         DisplayMetrics metrics = new DisplayMetrics();
-        getDisplay().getRealMetrics(metrics);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getDisplay().getRealMetrics(metrics);
+        }
         sDeviceWidth = metrics.widthPixels;
         sDeviceHeight = metrics.heightPixels;
         qrCodeSize = Math.min(sDeviceWidth, sDeviceHeight);
