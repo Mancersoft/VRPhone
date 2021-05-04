@@ -5,14 +5,17 @@ using UnityEngine.XR;
 
 public class CardboardLoaderScript : MonoBehaviour
 {
+    public VrModeController vrController;
+    public DriftFixScript driftFixScript;
+
     void Start()
     {
-        StartCoroutine(LoadDevice("cardboard"));
+        StartCoroutine(EnterVR());
     }
 
-    IEnumerator LoadDevice(string newDevice)
+    IEnumerator EnterVR()
     {
-        XRSettings.LoadDeviceByName(newDevice);
+        vrController.EnterVR();
         yield return null;
         XRSettings.enabled = true;
         yield return null;
@@ -20,5 +23,6 @@ public class CardboardLoaderScript : MonoBehaviour
         Screen.orientation = ScreenOrientation.AutoRotation;
         Screen.autorotateToPortrait = false;
         Screen.autorotateToPortraitUpsideDown = false;
+        driftFixScript.Init();
     }
 }

@@ -84,10 +84,9 @@ public class TestController : MonoBehaviour
                 TestBlock.ControlMethod.Mouse, TestBlock.ConfirmationMethod.Click, 200, 80000, 5, 12, false, true, true, true, true, false,
                 new Color32(67, 67, 67, 255), Color.yellow, Color.black, new Color32(200, 200, 200, 255), new Color32(128, 128, 128, 255), Color.red));
 
-        VerticalShift = (Screen.height / 2) - TestBlockData.TargetAmplitudes.Max() - (TestBlockData.TargetDiameters.Max() / 2);
-#if !UNITY_EDITOR
-        VerticalShift = -VerticalShift;
-#endif
+        float maxLength = TestBlockData.TargetAmplitudes.Select((el, i) => el + TestBlockData.TargetDiameters[i] / 2).Max();
+        VerticalShift = -((_targetCanvas.GetComponent<RectTransform>().rect.height / 2) - maxLength);
+        //Debug.Log(Screen.height + " " + _targetCanvas.GetComponent<RectTransform>().rect.height + " " + maxLength + " " + VerticalShift + " " + _targetCanvas.scaleFactor + " " + Screen.height * _targetCanvas.scaleFactor);
 
         Helper.SendConditionBroadcast();
 

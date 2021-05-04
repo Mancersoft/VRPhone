@@ -221,8 +221,6 @@ namespace SolAR
                         var rotation = Quaternion.LookRotation(forward, -up);
                         var position = -new Vector3(unityCameraPose.m03, unityCameraPose.m13, unityCameraPose.m23);
 
-                        position = Vector3.Lerp(Vector3.zero, position, 0.96f);
-
                         m_PrevSolARObj.localPosition = position;
                         m_RotationControl.localRotation = rotation;
                         var prevParent = m_PrevSolARObj.parent;
@@ -231,53 +229,23 @@ namespace SolAR
                         m_PrevSolARObj.parent = prevParent;
 
 
-                        m_PrevSolARObj.rotation = Quaternion.Inverse(rotation);
-                        //m_PrevSolARObj.Rotate(new Vector3(-90, 0, 0), Space.Self);
-                        //m_PrevSolARObj.Rotate(new Vector3(0, -180, 0), Space.Self);
-
-                        //m_PrevSolARObj.Rotate(Camera.main.transform.eulerAngles, Space.Self);
-                        //m_PrevSolARObj.Rotate(new Vector3(0, 0, -Camera.main.transform.rotation.eulerAngles.y), Space.Self);
-                        //m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Vector3.up, Camera.main.transform.rotation.eulerAngles.y);
-                        m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.right, Camera.main.transform.rotation.eulerAngles.x);
-                        m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.up, Camera.main.transform.rotation.eulerAngles.y);
-                        //m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.forward, Camera.main.transform.rotation.eulerAngles.z);
-                        //m_PrevSolARObj.Rotate(new Vector3(0, -Camera.main.transform.rotation.eulerAngles.x, 0), Space.Self);
-
-                        ////if (Screen.orientation == ScreenOrientation.LandscapeRight)
-                        ////{
-                        ////    m_PrevSolARObj.rotation = Quaternion.Inverse(m_PrevSolARObj.rotation);
-                        ////}
-
-                        ////if (Vector3.Angle(Vector3.up, Camera.main.transform.up) > 90)
-                        ////{
-                        ////    m_PrevSolARObj.rotation = m_SolARObj.rotation;
-                        ////}
+                        m_PrevSolARObj.localRotation = Quaternion.Inverse(rotation);
+                        m_PrevSolARObj.Rotate(new Vector3(-90, 0, 0), Space.Self);
 
                         if (Screen.orientation == ScreenOrientation.LandscapeRight)
                         {
-                            m_PrevSolARObj.position -= new Vector3(cameraXShift, 0, 0);
+                            m_PrevSolARObj.localPosition -= new Vector3(cameraXShift, 0, 0);
                         }
                         else
                         {
-                            m_PrevSolARObj.position += new Vector3(cameraXShift, 0, 0);
+                            m_PrevSolARObj.localPosition += new Vector3(cameraXShift, 0, 0);
                         }
 
-
-                        if (socketSignalerScript.gyroDataTimestamp == 0)
+                        var rotDist = Quaternion.Angle(prevRot, m_PrevSolARObj.rotation);
+                        if (rotDist >= 10)
                         {
-                            var rotDist = Quaternion.Angle(m_SolARObj.rotation, m_PrevSolARObj.rotation);
-                            float rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
-                            if ((rotDist >= 10) && rotLerpStatus >= 1)
-                            {
-                                //Debug.Log("Rot dist: " + rotDist);
-                                ////Debug.Log("angle: " + angleDifferences);
-                                //m_SolARObj.rotation = m_PrevSolARObj.rotation;
-                                rotLerpTime = Time.time;
-                                curRot = m_SolARObj.rotation;
-                                prevRot = m_PrevSolARObj.rotation;
-                            }
-                            rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
-                            m_SolARObj.rotation = Quaternion.Lerp(curRot, prevRot, rotLerpStatus);
+                            prevRot = m_PrevSolARObj.rotation;
+                            socketSignalerScript.ResetGyroInverse();
                         }
 
                         var posDist = Vector3.Distance(m_SolARObj.position, m_PrevSolARObj.position);
@@ -298,12 +266,26 @@ namespace SolAR
                     }
                 }
             }
+
+            SetFusedRotation();
         }
 
-        public IEnumerator SetGyroRotationCoroutine()
+        private Quaternion realRotation = Quaternion.identity;
+
+        private void SetFusedRotation()
         {
-            m_SolARObj.rotation = socketSignalerScript.gyroQuaternion;
-            yield return null;
+            var realCurrentRotation = prevRot * socketSignalerScript.gyroQuaternion;
+            float rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
+            if (rotLerpStatus >= 1)
+            {
+                rotLerpTime = Time.time;
+                curRot = m_SolARObj.rotation;
+                realRotation = realCurrentRotation;
+            }
+
+            rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
+
+            m_SolARObj.rotation = Quaternion.Lerp(curRot, realRotation, rotLerpStatus);
         }
 
         public void Init()

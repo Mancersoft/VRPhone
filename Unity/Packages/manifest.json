@@ -9,6 +9,7 @@
     }
   ],
   "dependencies": {
+    "com.google.xr.cardboard": "https://github.com/googlevr/cardboard-xr-plugin.git",
     "com.microsoft.mixedreality.webrtc": "2.0.2",
     "com.microsoft.mixedreality.webrtc.samples": "2.0.2",
     "com.unity.collab-proxy": "1.2.16",
@@ -18,7 +19,6 @@
     "com.unity.textmeshpro": "2.1.1",
     "com.unity.timeline": "1.2.16",
     "com.unity.ugui": "1.0.0",
-    "com.unity.xr.googlevr.android": "2.0.0",
     "com.unity.xr.interaction.toolkit": "0.10.0-preview.7",
     "com.unity.xr.legacyinputhelpers": "2.1.7",
     "com.unity.xr.management": "3.2.17",

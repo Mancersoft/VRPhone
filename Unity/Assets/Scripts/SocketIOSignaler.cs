@@ -29,6 +29,7 @@ public class SocketIOSignaler : Signaler
 
     public long gyroDataTimestamp = 0;
     public Quaternion gyroQuaternion = Quaternion.identity;
+    private Quaternion rawQuaternion = Quaternion.identity;
     private Quaternion gyroInverse = Quaternion.identity;
 
     private Task SendIOMessage(string type, JSONObject payload)
@@ -129,15 +130,14 @@ public class SocketIOSignaler : Signaler
         }
 
         long timestamp = BitConverter.ToInt64(data, 0);
-        var quaternion = new Quaternion(
+        rawQuaternion = new Quaternion(
             BitConverter.ToSingle(data, 12),
             BitConverter.ToSingle(data, 16),
             BitConverter.ToSingle(data, 20),
             BitConverter.ToSingle(data, 8));
         if (gyroInverse == Quaternion.identity)
         {
-            gyroInverse = Quaternion.Inverse(quaternion);
-            gyroInverse.eulerAngles = new Vector3(0, 0, gyroInverse.eulerAngles.z);
+            ResetGyroInverse();
             return;
         }
 
@@ -147,8 +147,13 @@ public class SocketIOSignaler : Signaler
         }
 
         gyroDataTimestamp = timestamp;
-        gyroQuaternion = ConvertRightHandedToLeftHandedQuaternion(gyroInverse * quaternion);
-        UnityMainThreadDispatcher.Instance().Enqueue(solarScript.SetGyroRotationCoroutine());
+        gyroQuaternion = ConvertRightHandedToLeftHandedQuaternion(gyroInverse * rawQuaternion);
+    }
+
+    public void ResetGyroInverse()
+    {
+        gyroInverse = Quaternion.Inverse(rawQuaternion);
+        //gyroInverse.eulerAngles = new Vector3(0, 0, gyroInverse.eulerAngles.z);
     }
 
     private static Quaternion ConvertRightHandedToLeftHandedQuaternion(Quaternion rightHandedQuaternion)

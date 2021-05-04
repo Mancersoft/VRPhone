@@ -155,7 +155,20 @@ PlayerSettings:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: -2104520790709891342, guid: bb74929ed20064c4a8c6cddc48c0ccd9, type: 2}
+  - {fileID: 0}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -171,7 +184,7 @@ PlayerSettings:
       enableVideoLayer: 0
       useProtectedVideoMemory: 0
       minimumSupportedHeadTracking: 0
-      maximumSupportedHeadTracking: 1
+      maximumSupportedHeadTracking: 0
     hololens:
       depthFormat: 1
       depthBufferSharingEnabled: 1
@@ -454,10 +467,11 @@ PlayerSettings:
     m_Enabled: 0
     m_Devices: []
   - m_BuildTarget: Android
-    m_Enabled: 1
+    m_Enabled: 0
     m_Devices:
     - None
     - cardboard
+    - daydream
   openGLRequireES31: 0
   openGLRequireES31AEP: 0
   openGLRequireES32: 0

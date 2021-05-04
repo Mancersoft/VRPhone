@@ -31,10 +31,12 @@ public final class Utils {
     public static void sendObjViaDataChannel(Object obj) {
         String objStr = new Gson().toJson(obj);
         byte[] objBytes = objStr.getBytes(StandardCharsets.UTF_8);
-        WebRtcClient.Peer peer = RtcActivity.mWebRtcClient.peers.entrySet().iterator().next().getValue();
-        DataChannel dataChannel = peer.tcpDataChannel;
-        if (dataChannel != null && dataChannel.state() == DataChannel.State.OPEN) {
-            dataChannel.send(new DataChannel.Buffer(ByteBuffer.wrap(objBytes), true));
+        if (RtcActivity.mWebRtcClient.peers.size() > 0) {
+            WebRtcClient.Peer peer = RtcActivity.mWebRtcClient.peers.entrySet().iterator().next().getValue();
+            DataChannel dataChannel = peer.tcpDataChannel;
+            if (dataChannel != null && dataChannel.state() == DataChannel.State.OPEN) {
+                dataChannel.send(new DataChannel.Buffer(ByteBuffer.wrap(objBytes), true));
+            }
         }
     }
 

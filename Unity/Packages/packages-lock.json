@@ -1,5 +1,15 @@
 {
   "dependencies": {
+    "com.google.xr.cardboard": {
+      "version": "https://github.com/googlevr/cardboard-xr-plugin.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.xr.management": "3.2.9",
+        "com.unity.xr.legacyinputhelpers": "2.1.4"
+      },
+      "hash": "38cb0047bbc1b5a56c113164c9915fe2d22bc664"
+    },
     "com.microsoft.mixedreality.webrtc": {
       "version": "2.0.2",
       "depth": 0,
@@ -26,13 +36,6 @@
     },
     "com.unity.ext.nunit": {
       "version": "1.0.6",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.google.resonance.audio": {
-      "version": "2.0.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -103,15 +106,6 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
       }
-    },
-    "com.unity.xr.googlevr.android": {
-      "version": "2.0.0",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.google.resonance.audio": "2.0.0"
-      },
-      "url": "https://packages.unity.com"
     },
     "com.unity.xr.interaction.toolkit": {
       "version": "0.10.0-preview.7",
