@@ -88,8 +88,6 @@ public class TestController : MonoBehaviour
         VerticalShift = -((_targetCanvas.GetComponent<RectTransform>().rect.height / 2) - maxLength);
         //Debug.Log(Screen.height + " " + _targetCanvas.GetComponent<RectTransform>().rect.height + " " + maxLength + " " + VerticalShift + " " + _targetCanvas.scaleFactor + " " + Screen.height * _targetCanvas.scaleFactor);
 
-        Helper.SendConditionBroadcast();
-
 #if UNITY_EDITOR
         StartCoroutine(InputListener());
 #endif
@@ -100,6 +98,17 @@ public class TestController : MonoBehaviour
 
         SetPause();
     }
+
+    private IEnumerator SendParamsCoroutine()
+    {
+        while (true)
+        {
+            Helper.SendConditionBroadcast();
+            yield return new WaitForSeconds(3);
+        }
+    }
+
+    private Coroutine sendParamsCoroutine;
 
     private void SetPause()
     {
@@ -122,6 +131,7 @@ public class TestController : MonoBehaviour
                 "\nSequence: " + (_sequenceIndex + 2);
         }
 
+        sendParamsCoroutine = StartCoroutine(SendParamsCoroutine());
         _pressStartText.enabled = true;
         pauseStartTime = Time.time;
     }
@@ -296,6 +306,10 @@ public class TestController : MonoBehaviour
 
     public void StartTest()
     {
+        if (sendParamsCoroutine != null)
+        {
+            StopCoroutine(sendParamsCoroutine);
+        }
         if (TestBlockData == null)
         {
             Debug.LogError("TestBlockData has not been loaded. Ensure TestBlockData is loaded before starting test.");
@@ -324,6 +338,7 @@ public class TestController : MonoBehaviour
         TestBlockData.Sequences[_sequenceIndex].StartTime = DateTime.Now;
         Debug.Log("----Test Block Started-----");
         Debug.Log("----Test Sequence Started-----");
+
         NextStep();
     }
 

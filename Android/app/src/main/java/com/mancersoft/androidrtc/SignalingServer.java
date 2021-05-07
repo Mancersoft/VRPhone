@@ -135,10 +135,10 @@ public class SignalingServer {
         }
     }
 
-    public SignalingServer() {
+    public SignalingServer(int port) {
         Configuration config = new Configuration();
         config.setHostname("0.0.0.0");
-        config.setPort(9092);
+        config.setPort(port);
         config.setTransports(Transport.WEBSOCKET);
         config.setAckMode(AckMode.AUTO);
         config.setAllowCustomRequests(true);

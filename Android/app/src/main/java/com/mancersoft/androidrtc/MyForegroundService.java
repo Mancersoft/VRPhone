@@ -31,6 +31,9 @@ public class MyForegroundService extends Service implements SensorEventListener 
     public static final String SERVICE_STARTED = "SERVICE_STARTED";
     public static final String SERVICE_START_FAILED = "SERVICE_START_FAILED";
 
+    public static final int MIN_PORT = 9092;
+    public static final int MAX_PORT = 9192;
+
     private SignalingServer signalingServer;
 
     private SensorManager sensorManager;
@@ -38,6 +41,8 @@ public class MyForegroundService extends Service implements SensorEventListener 
     private ConditionReceiver conditionReceiver;
 
     private long lastTimestamp = 0;
+
+    private int port = MIN_PORT;
 
     @Nullable
     @Override
@@ -78,7 +83,10 @@ public class MyForegroundService extends Service implements SensorEventListener 
                 @Override
                 public void run() {
                     sendBroadcast(new Intent(SERVICE_START_FAILED));
-                    signalingServer = new SignalingServer();
+
+                    port = Utils.managePort(MyForegroundService.this);
+
+                    signalingServer = new SignalingServer(port);
                     signalingServer.setOnServerStarted(serverStartedListener);
                     signalingServer.setOnServerFailedToStart(serverFailedListener);
                     signalingServer.start();
@@ -91,7 +99,8 @@ public class MyForegroundService extends Service implements SensorEventListener 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (signalingServer == null) {
-            signalingServer = new SignalingServer();
+            port = intent.getIntExtra(Utils.PORT_KEY, MIN_PORT);
+            signalingServer = new SignalingServer(port);
             signalingServer.setOnServerStarted(serverStartedListener);
             signalingServer.setOnServerFailedToStart(serverFailedListener);
             signalingServer.start();

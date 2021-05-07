@@ -26,6 +26,7 @@ public class SocketIOSignaler : Signaler
     //public WebcamSource webcamSource;
 
     public string signalingServerIp;
+    public string signalingServerPort;
 
     public long gyroDataTimestamp = 0;
     public Quaternion gyroQuaternion = Quaternion.identity;
@@ -66,7 +67,7 @@ public class SocketIOSignaler : Signaler
     {
         _nativePeer.DataChannelAdded += OnDataChannelAdded;
         var prevSocket = socket;
-        socket.url = $"ws://{signalingServerIp}:9092/socket.io/?EIO=4&transport=websocket";
+        socket.url = $"ws://{signalingServerIp}:{signalingServerPort}/socket.io/?EIO=4&transport=websocket";
         socket = Instantiate(socket);
         Destroy(prevSocket.gameObject);
         socket.On("id", OnId);
@@ -97,6 +98,16 @@ public class SocketIOSignaler : Signaler
         
     }
 
+    private const string CONDITION_TYPE = "CONDITION";
+    private const string DEVICE_PARAMS_TYPE = "DEVICE_PARAMS";
+
+    private class DeviceParamsMessage {
+        public string type = DEVICE_PARAMS_TYPE;
+        public float width;
+        public float height;
+        public float ratio;
+    }
+
     private void OnTcpDataChannelMessageReceived(byte[] data)
     {
         string dataStr = Encoding.UTF8.GetString(data);
@@ -104,16 +115,14 @@ public class SocketIOSignaler : Signaler
         JSONObject obj = JSONObject.Create(dataStr);
         switch (GetString(obj, "type"))
         {
-            case "CONDITION":
+            case CONDITION_TYPE:
                 var condition = (StudyManager.Conditions)GetInt(obj, "value");
                 Debug.Log("Experiment condition: " + condition);
                 StudyManager.Instance.SetContiditon(condition);
                 break;
-            case "DEVICE_PARAMS":
-                float width = GetFloat(obj, "width");
-                float height = GetFloat(obj, "height");
-                float ratio = GetFloat(obj, "ratio");
-                StudyManager.Instance.SetScreenAndPhoneSize(width, height, ratio);
+            case DEVICE_PARAMS_TYPE:
+                var deviceParams = JsonUtility.FromJson<DeviceParamsMessage>(dataStr);
+                StudyManager.Instance.SetScreenAndPhoneSize(deviceParams.width, deviceParams.height, deviceParams.ratio);
                 break;
         }
     }
@@ -189,13 +198,6 @@ public class SocketIOSignaler : Signaler
     private static int GetInt(JSONObject jObject, string name)
     {
         int field = 0;
-        jObject.GetField(ref field, name);
-        return field;
-    }
-
-    private static float GetFloat(JSONObject jObject, string name)
-    {
-        float field = 0;
         jObject.GetField(ref field, name);
         return field;
     }

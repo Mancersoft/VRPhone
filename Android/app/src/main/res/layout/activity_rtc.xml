@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:theme="@style/AppTheme"
-            android:text="@string/ip_address_hint"
+            android:text="@string/server_address_hint"
             android:labelFor="@+id/textViewIp"/>
 
         <TextView

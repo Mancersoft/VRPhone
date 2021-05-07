@@ -13,6 +13,7 @@ public class StudyManager : MonoBehaviour
     public Transform phoneScreen;
     public Transform phoneModel;
     public Transform cameraOffset;
+    public Transform camTransform;
 
     public static StudyManager Instance;
 
@@ -38,7 +39,7 @@ public class StudyManager : MonoBehaviour
             case Conditions.Direct:
             case Conditions.Warped:
             case Conditions.UnWarped:
-                screenPlace.parent = Camera.main.transform;
+                screenPlace.parent = camTransform;
                 screenPlace.localPosition = new Vector3(0, 0, 0.3f);
                 screenPlace.localRotation = Quaternion.identity;
 
@@ -65,17 +66,17 @@ public class StudyManager : MonoBehaviour
 
     private void SetIndirectPosRot()
     {
-        var camForward = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z).normalized;
+        var camForward = new Vector3(camTransform.forward.x, 0, camTransform.forward.z).normalized;
         screenPlace.localPosition = new Vector3(camForward.x, -0.1f, camForward.z) * 0.28f;
         screenPlace.localRotation =
-            Quaternion.LookRotation(new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z),
-            Camera.main.transform.up);
-        screenPlace.rotation = Quaternion.Euler(screenPlace.eulerAngles.x, screenPlace.eulerAngles.y, Camera.main.transform.eulerAngles.z);
+            Quaternion.LookRotation(new Vector3(camTransform.forward.x, 0, camTransform.forward.z),
+            camTransform.up);
+        screenPlace.rotation = Quaternion.Euler(screenPlace.eulerAngles.x, screenPlace.eulerAngles.y, camTransform.eulerAngles.z);
     }
 
     private void Update()
     {
-        screenPlace.rotation = Quaternion.Euler(screenPlace.eulerAngles.x, screenPlace.eulerAngles.y, Camera.main.transform.eulerAngles.z);
+        screenPlace.rotation = Quaternion.Euler(screenPlace.eulerAngles.x, screenPlace.eulerAngles.y, camTransform.eulerAngles.z);
         if (Input.GetKeyDown(KeyCode.R))
         {
             SetContiditon(condition == Conditions.Direct ? Conditions.Indirect : Conditions.Direct);
@@ -94,8 +95,8 @@ public class StudyManager : MonoBehaviour
 
     private IEnumerator SetScreenAndPhoneSizeCoroutine(float width, float height, float ratio)
     {
-        phoneModel.localScale = new Vector3(width * 0.0108262f, height * 0.0057727f, phoneModel.localScale.z);
-        float screenWidth = width * 0.0259079f;
+        phoneModel.localScale = new Vector3(width * 0.0174884938229822f, height * 0.009325172830074f, phoneModel.localScale.z);
+        float screenWidth = width * 0.0437212241476402f;
         screen.localScale = new Vector3(screenWidth, screenWidth * ratio, screen.localScale.z);
         yield return null;
     }

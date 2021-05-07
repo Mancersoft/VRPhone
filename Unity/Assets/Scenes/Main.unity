@@ -145,12 +145,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3650195}
-  m_LocalRotation: {x: 0.13052616, y: -0, z: -0, w: 0.9914449}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 221184694}
-  m_RootOrder: 1
+  m_Father: {fileID: 1796682654}
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 15, y: 0, z: 0}
 --- !u!20 &3650197
 Camera:
@@ -312,7 +312,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Scan QR Code with server IP in second smartphone
+  m_text: Scan QR Code with server address in second smartphone
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -456,6 +456,11 @@ PrefabInstance:
       propertyPath: m_SolARObj
       value: 
       objectReference: {fileID: 580402929}
+    - target: {fileID: 8997161845923243914, guid: 37f082361edc9064ba18b144c5e661ce,
+        type: 3}
+      propertyPath: mainCamera
+      value: 
+      objectReference: {fileID: 1796682660}
     - target: {fileID: 8997161845923243914, guid: 37f082361edc9064ba18b144c5e661ce,
         type: 3}
       propertyPath: cameraScreen
@@ -662,6 +667,7 @@ MonoBehaviour:
   localPeerId: 
   remotePeerId: _rXJLf7pFgzsdmEgAAAS
   signalingServerIp: 
+  signalingServerPort: 
   gyroDataTimestamp: 0
   gyroQuaternion: {x: 0, y: 0, z: 0, w: 1}
 --- !u!4 &462521549
@@ -707,7 +713,7 @@ Transform:
   m_Children:
   - {fileID: 1212499079}
   m_Father: {fileID: 221184694}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &483061631
 PrefabInstance:
@@ -1362,6 +1368,7 @@ MonoBehaviour:
   phoneScreen: {fileID: 14674169}
   phoneModel: {fileID: 543450653652655560}
   cameraOffset: {fileID: 221184694}
+  camTransform: {fileID: 1796682654}
   condition: 0
 --- !u!4 &903777654
 Transform:
@@ -1442,7 +1449,7 @@ Transform:
   m_Children:
   - {fileID: 86604958}
   m_Father: {fileID: 221184694}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1112267482
 GameObject:
