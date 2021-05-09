@@ -42,13 +42,14 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
     public static int sDeviceHeight;
     public static final int SCREEN_RESOLUTION_SCALE = 2;
 
-    private static final String QR_CODE_KEY = "SCREEN_CAPTURE_IP=";
+    private static final String QR_CODE_KEY = "SCREEN_CAPTURE_ADDRESS=";
 
     public static WebRtcClient mWebRtcClient;
 
     private TextView textViewIp;
     private ImageView imageViewQrCode;
     private int qrCodeSize;
+    private int port;
 
     private final BroadcastReceiver serviceMessagesReceiver = new BroadcastReceiver() {
         @Override
@@ -60,7 +61,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                 case MyForegroundService.SERVICE_START_FAILED:
                     stopService(new Intent(RtcActivity.this, MyForegroundService.class));
                     Toast.makeText(RtcActivity.this,
-                            "Server failed to start! Please restart the app and try again",
+                            getString(R.string.server_failed_to_start),
                             Toast.LENGTH_SHORT).show();
                     break;
             }
@@ -85,6 +86,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         sDeviceWidth = metrics.widthPixels;
         sDeviceHeight = metrics.heightPixels;
         qrCodeSize = Math.min(sDeviceWidth, sDeviceHeight);
+        port = Utils.managePort(this);
 
         Utils.setRealDeviceSize(this);
         Log.d(WebRtcClient.TAG, "width: " + Utils.deviceParamsMessage.width + "; height: " +
@@ -159,10 +161,12 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
             return;
         }
 
+        Intent intent = new Intent(this, MyForegroundService.class);
+        intent.putExtra(Utils.PORT_KEY, port);
         if (Build.VERSION.SDK_INT >= 26) {
-            startForegroundService(new Intent(this, MyForegroundService.class));
+            startForegroundService(intent);
         } else {
-            startService(new Intent(this, MyForegroundService.class));
+            startService(intent);
         }
     }
 
@@ -177,11 +181,13 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                         "OPUS", false, false, false, false, false, false, false, false, null);
         mWebRtcClient = new WebRtcClient(getApplicationContext(), this, createScreenCapturer(), peerConnectionParameters);
 
-        String ipAddress = Utils.getDeviceIpAddress();
-        textViewIp.setText(ipAddress);
-        imageViewQrCode.setImageBitmap(Utils.generateQrCode(QR_CODE_KEY + ipAddress, qrCodeSize));
+        String addressPort = Utils.getDeviceIpAddress() + ":" + port;
+        textViewIp.setText(addressPort);
+        imageViewQrCode.setImageBitmap(Utils.generateQrCode(QR_CODE_KEY + addressPort, qrCodeSize));
 
-        mWebRtcClient.connect(getString(R.string.default_ip_port));
+
+
+        mWebRtcClient.connect("127.0.0.1:" + port);
     }
 
     public void report(String info) {

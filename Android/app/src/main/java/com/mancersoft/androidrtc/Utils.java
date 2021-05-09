@@ -1,6 +1,8 @@
 package com.mancersoft.androidrtc;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -26,16 +28,37 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 
+import static android.content.Context.MODE_PRIVATE;
+
 public final class Utils {
+
+    private static final String SHARED_KEY = "RTC_APP_SHARED";
+    public static final String PORT_KEY = "PORT";
 
     public static void sendObjViaDataChannel(Object obj) {
         String objStr = new Gson().toJson(obj);
         byte[] objBytes = objStr.getBytes(StandardCharsets.UTF_8);
-        WebRtcClient.Peer peer = RtcActivity.mWebRtcClient.peers.entrySet().iterator().next().getValue();
-        DataChannel dataChannel = peer.tcpDataChannel;
-        if (dataChannel != null && dataChannel.state() == DataChannel.State.OPEN) {
-            dataChannel.send(new DataChannel.Buffer(ByteBuffer.wrap(objBytes), true));
+        if (RtcActivity.mWebRtcClient.peers.size() > 0) {
+            WebRtcClient.Peer peer = RtcActivity.mWebRtcClient.peers.entrySet().iterator().next().getValue();
+            DataChannel dataChannel = peer.tcpDataChannel;
+            if (dataChannel != null && dataChannel.state() == DataChannel.State.OPEN) {
+                dataChannel.send(new DataChannel.Buffer(ByteBuffer.wrap(objBytes), true));
+            }
         }
+    }
+
+    public static int managePort(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_KEY, MODE_PRIVATE);
+        int port = prefs.getInt(Utils.PORT_KEY, MyForegroundService.MIN_PORT - 1);
+        port++;
+        if (port >  MyForegroundService.MAX_PORT) {
+            port = MyForegroundService.MIN_PORT;
+        }
+
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(PORT_KEY, port);
+        editor.apply();
+        return port;
     }
 
     @Nullable
@@ -146,24 +169,23 @@ public final class Utils {
     public static final String DEVICE_PARAMS_TYPE = "DEVICE_PARAMS";
 
     public static class ConditionMessage {
-        public String type;
+        public String type = CONDITION_TYPE;
         public int value;
         public ConditionMessage(int value) {
-            type = CONDITION_TYPE;
             this.value = value;
         }
     }
 
     public static class DeviceParamsMessage {
-        public String type;
+        public String type = DEVICE_PARAMS_TYPE;
         public float width;
         public float height;
         public float ratio;
         public DeviceParamsMessage()
         {
         }
+
         public DeviceParamsMessage(float width, float height, float ratio) {
-            type = DEVICE_PARAMS_TYPE;
             this.width = width;
             this.height = height;
             this.ratio = ratio;

@@ -13,6 +13,10 @@ public class StudyManager : MonoBehaviour
     public Transform phoneScreen;
     public Transform phoneModel;
     public Transform cameraOffset;
+    public Camera mainCam;
+
+    public GameObject indirectHint1;
+    public GameObject indirectHint2;
 
     public static StudyManager Instance;
 
@@ -38,9 +42,8 @@ public class StudyManager : MonoBehaviour
             case Conditions.Direct:
             case Conditions.Warped:
             case Conditions.UnWarped:
-                screenPlace.parent = Camera.main.transform;
-                screenPlace.localPosition = new Vector3(0, 0, 0.3f);
-                screenPlace.localRotation = Quaternion.identity;
+                indirectHint1.SetActive(false);
+                indirectHint2.SetActive(true);
 
                 screen.parent = phoneScreen;
                 screen.localPosition = Vector3.zero;
@@ -48,12 +51,16 @@ public class StudyManager : MonoBehaviour
                 screen.gameObject.layer = LayerMask.NameToLayer("Default");
                 break;
             case Conditions.Indirect:
-                screenPlace.parent = cameraOffset;
                 screen.parent = screenPlace;
                 screen.localPosition = Vector3.zero;
                 screen.localRotation = Quaternion.identity;
 
-                SetIndirectPosRot();
+                if (this.condition != condition)
+                {
+                    var camForward = new Vector3(mainCam.transform.forward.x, 0, mainCam.transform.forward.z).normalized;
+                    screenPlace.localPosition = new Vector3(camForward.x, -0.1f, camForward.z) * 0.42f;
+                    SetIndirectRot();
+                }
 
                 screen.gameObject.layer = LayerMask.NameToLayer("LayerOnTop");
                 break;
@@ -63,19 +70,19 @@ public class StudyManager : MonoBehaviour
         yield return null;
     }
 
-    private void SetIndirectPosRot()
+    private void SetIndirectRot()
     {
-        var camForward = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z).normalized;
-        screenPlace.localPosition = new Vector3(camForward.x, -0.1f, camForward.z) * 0.28f;
-        screenPlace.localRotation =
-            Quaternion.LookRotation(new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z),
-            Camera.main.transform.up);
-        screenPlace.rotation = Quaternion.Euler(screenPlace.eulerAngles.x, screenPlace.eulerAngles.y, Camera.main.transform.eulerAngles.z);
+        //var camForward = new Vector3(mainCam.transform.forward.x, 0, mainCam.transform.forward.z).normalized;
+        //screenPlace.localPosition = new Vector3(camForward.x, -0.1f, camForward.z) * 0.42f;
+        screenPlace.localRotation = mainCam.transform.localRotation;
+        //screenPlace.localRotation =
+        //    Quaternion.LookRotation(new Vector3(mainCam.transform.forward.x, 0, mainCam.transform.forward.z),
+        //    mainCam.transform.up);
+        //screenPlace.localRotation = Quaternion.Euler(screenPlace.eulerAngles.x, screenPlace.eulerAngles.y, mainCam.transform.eulerAngles.z);
     }
 
     private void Update()
     {
-        screenPlace.rotation = Quaternion.Euler(screenPlace.eulerAngles.x, screenPlace.eulerAngles.y, Camera.main.transform.eulerAngles.z);
         if (Input.GetKeyDown(KeyCode.R))
         {
             SetContiditon(condition == Conditions.Direct ? Conditions.Indirect : Conditions.Direct);
@@ -83,8 +90,19 @@ public class StudyManager : MonoBehaviour
 
         if (condition == Conditions.Indirect)
         {
-            SetIndirectPosRot();
+            SetIndirectRot();
+            if ((indirectHint1.activeSelf || indirectHint2.activeSelf) && IsShownOnTheScreen(screen.position))
+            {
+                indirectHint1.SetActive(false);
+                indirectHint2.SetActive(false);
+            }
         }
+    }
+
+    private bool IsShownOnTheScreen(Vector3 worldPos)
+    {
+        var pos = mainCam.WorldToViewportPoint(worldPos);
+        return pos.z >= 0 && pos.x >= 0 && pos.x <= 1 && pos.y >= 0 && pos.y <= 1;
     }
 
     public void SetContiditon(Conditions condition)
@@ -94,8 +112,8 @@ public class StudyManager : MonoBehaviour
 
     private IEnumerator SetScreenAndPhoneSizeCoroutine(float width, float height, float ratio)
     {
-        phoneModel.localScale = new Vector3(width * 0.0108262f, height * 0.0057727f, phoneModel.localScale.z);
-        float screenWidth = width * 0.0259079f;
+        phoneModel.localScale = new Vector3(width * 0.0174884938229822f, height * 0.009325172830074f, phoneModel.localScale.z);
+        float screenWidth = width * 0.0437212241476402f;
         screen.localScale = new Vector3(screenWidth, screenWidth * ratio, screen.localScale.z);
         yield return null;
     }

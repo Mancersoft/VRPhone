@@ -84,12 +84,9 @@ public class TestController : MonoBehaviour
                 TestBlock.ControlMethod.Mouse, TestBlock.ConfirmationMethod.Click, 200, 80000, 5, 12, false, true, true, true, true, false,
                 new Color32(67, 67, 67, 255), Color.yellow, Color.black, new Color32(200, 200, 200, 255), new Color32(128, 128, 128, 255), Color.red));
 
-        VerticalShift = (Screen.height / 2) - TestBlockData.TargetAmplitudes.Max() - (TestBlockData.TargetDiameters.Max() / 2);
-#if !UNITY_EDITOR
-        VerticalShift = -VerticalShift;
-#endif
-
-        Helper.SendConditionBroadcast();
+        float maxLength = TestBlockData.TargetAmplitudes.Select((el, i) => el + TestBlockData.TargetDiameters[i] / 2).Max();
+        VerticalShift = -((_targetCanvas.GetComponent<RectTransform>().rect.height / 2) - maxLength);
+        //Debug.Log(Screen.height + " " + _targetCanvas.GetComponent<RectTransform>().rect.height + " " + maxLength + " " + VerticalShift + " " + _targetCanvas.scaleFactor + " " + Screen.height * _targetCanvas.scaleFactor);
 
 #if UNITY_EDITOR
         StartCoroutine(InputListener());
@@ -101,6 +98,17 @@ public class TestController : MonoBehaviour
 
         SetPause();
     }
+
+    private IEnumerator SendParamsCoroutine()
+    {
+        while (true)
+        {
+            Helper.SendConditionBroadcast();
+            yield return new WaitForSeconds(3);
+        }
+    }
+
+    private Coroutine sendParamsCoroutine;
 
     private void SetPause()
     {
@@ -123,6 +131,7 @@ public class TestController : MonoBehaviour
                 "\nSequence: " + (_sequenceIndex + 2);
         }
 
+        sendParamsCoroutine = StartCoroutine(SendParamsCoroutine());
         _pressStartText.enabled = true;
         pauseStartTime = Time.time;
     }
@@ -297,6 +306,10 @@ public class TestController : MonoBehaviour
 
     public void StartTest()
     {
+        if (sendParamsCoroutine != null)
+        {
+            StopCoroutine(sendParamsCoroutine);
+        }
         if (TestBlockData == null)
         {
             Debug.LogError("TestBlockData has not been loaded. Ensure TestBlockData is loaded before starting test.");
@@ -325,6 +338,7 @@ public class TestController : MonoBehaviour
         TestBlockData.Sequences[_sequenceIndex].StartTime = DateTime.Now;
         Debug.Log("----Test Block Started-----");
         Debug.Log("----Test Sequence Started-----");
+
         NextStep();
     }
 

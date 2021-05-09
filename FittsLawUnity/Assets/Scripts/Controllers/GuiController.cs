@@ -102,7 +102,7 @@ public class GuiController : MonoBehaviour
         _spatialHysteresisInput.text = "1.0";
         _controlMethodInput.value = 7; //1;
         _confirmationMethodInput.value = 0;
-        _dwellTimeInput.text = "100";
+        _dwellTimeInput.text = "0";
         _timeoutInput.text = "10000";
         _eyeSmoothFactorInput.text = "5";
         _scaleFactorInput.value = 0;

@@ -26,9 +26,11 @@ public class SocketIOSignaler : Signaler
     //public WebcamSource webcamSource;
 
     public string signalingServerIp;
+    public string signalingServerPort;
 
     public long gyroDataTimestamp = 0;
     public Quaternion gyroQuaternion = Quaternion.identity;
+    private Quaternion rawQuaternion = Quaternion.identity;
     private Quaternion gyroInverse = Quaternion.identity;
 
     private Task SendIOMessage(string type, JSONObject payload)
@@ -65,7 +67,7 @@ public class SocketIOSignaler : Signaler
     {
         _nativePeer.DataChannelAdded += OnDataChannelAdded;
         var prevSocket = socket;
-        socket.url = $"ws://{signalingServerIp}:9092/socket.io/?EIO=4&transport=websocket";
+        socket.url = $"ws://{signalingServerIp}:{signalingServerPort}/socket.io/?EIO=4&transport=websocket";
         socket = Instantiate(socket);
         Destroy(prevSocket.gameObject);
         socket.On("id", OnId);
@@ -96,6 +98,16 @@ public class SocketIOSignaler : Signaler
         
     }
 
+    private const string CONDITION_TYPE = "CONDITION";
+    private const string DEVICE_PARAMS_TYPE = "DEVICE_PARAMS";
+
+    private class DeviceParamsMessage {
+        public string type = DEVICE_PARAMS_TYPE;
+        public float width;
+        public float height;
+        public float ratio;
+    }
+
     private void OnTcpDataChannelMessageReceived(byte[] data)
     {
         string dataStr = Encoding.UTF8.GetString(data);
@@ -103,16 +115,14 @@ public class SocketIOSignaler : Signaler
         JSONObject obj = JSONObject.Create(dataStr);
         switch (GetString(obj, "type"))
         {
-            case "CONDITION":
+            case CONDITION_TYPE:
                 var condition = (StudyManager.Conditions)GetInt(obj, "value");
                 Debug.Log("Experiment condition: " + condition);
                 StudyManager.Instance.SetContiditon(condition);
                 break;
-            case "DEVICE_PARAMS":
-                float width = GetFloat(obj, "width");
-                float height = GetFloat(obj, "height");
-                float ratio = GetFloat(obj, "ratio");
-                StudyManager.Instance.SetScreenAndPhoneSize(width, height, ratio);
+            case DEVICE_PARAMS_TYPE:
+                var deviceParams = JsonUtility.FromJson<DeviceParamsMessage>(dataStr);
+                StudyManager.Instance.SetScreenAndPhoneSize(deviceParams.width, deviceParams.height, deviceParams.ratio);
                 break;
         }
     }
@@ -129,15 +139,14 @@ public class SocketIOSignaler : Signaler
         }
 
         long timestamp = BitConverter.ToInt64(data, 0);
-        var quaternion = new Quaternion(
+        rawQuaternion = new Quaternion(
             BitConverter.ToSingle(data, 12),
             BitConverter.ToSingle(data, 16),
             BitConverter.ToSingle(data, 20),
             BitConverter.ToSingle(data, 8));
         if (gyroInverse == Quaternion.identity)
         {
-            gyroInverse = Quaternion.Inverse(quaternion);
-            gyroInverse.eulerAngles = new Vector3(0, 0, gyroInverse.eulerAngles.z);
+            ResetGyroInverse();
             return;
         }
 
@@ -147,8 +156,13 @@ public class SocketIOSignaler : Signaler
         }
 
         gyroDataTimestamp = timestamp;
-        gyroQuaternion = ConvertRightHandedToLeftHandedQuaternion(gyroInverse * quaternion);
-        UnityMainThreadDispatcher.Instance().Enqueue(solarScript.SetGyroRotationCoroutine());
+        gyroQuaternion = ConvertRightHandedToLeftHandedQuaternion(gyroInverse * rawQuaternion);
+    }
+
+    public void ResetGyroInverse()
+    {
+        gyroInverse = Quaternion.Inverse(rawQuaternion);
+        //gyroInverse.eulerAngles = new Vector3(0, 0, gyroInverse.eulerAngles.z);
     }
 
     private static Quaternion ConvertRightHandedToLeftHandedQuaternion(Quaternion rightHandedQuaternion)
@@ -184,13 +198,6 @@ public class SocketIOSignaler : Signaler
     private static int GetInt(JSONObject jObject, string name)
     {
         int field = 0;
-        jObject.GetField(ref field, name);
-        return field;
-    }
-
-    private static float GetFloat(JSONObject jObject, string name)
-    {
-        float field = 0;
         jObject.GetField(ref field, name);
         return field;
     }

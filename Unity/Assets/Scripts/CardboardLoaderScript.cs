@@ -5,6 +5,8 @@ using UnityEngine.XR;
 
 public class CardboardLoaderScript : MonoBehaviour
 {
+    public DriftFixScript driftFixScript;
+
     void Start()
     {
         StartCoroutine(LoadDevice("cardboard"));
@@ -20,5 +22,6 @@ public class CardboardLoaderScript : MonoBehaviour
         Screen.orientation = ScreenOrientation.AutoRotation;
         Screen.autorotateToPortrait = false;
         Screen.autorotateToPortraitUpsideDown = false;
+        driftFixScript.Init();
     }
 }

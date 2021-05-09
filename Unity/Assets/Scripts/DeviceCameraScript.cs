@@ -14,10 +14,9 @@ public class DeviceCameraScript : MonoBehaviour
 
     public SolARPipeline solarScript;
 
-    public AndroidPermissionManager permissionManager;
-
     public GameObject[] objectsToDeactivate;
 
+    [HideInInspector]
     public WebCamTexture activeCameraTexture;
 
     private WebCamDevice activeCameraDevice;

@@ -13,6 +13,7 @@ namespace SolAR
         public Transform m_RotationControl;
         public Transform m_PrevSolARObj;
         public Transform m_SolARObj;
+        public Camera mainCamera;
 
         public DeviceCameraScript deviceCameraScript;
         public PhoneManagerScript phoneManagerScript;
@@ -116,42 +117,38 @@ namespace SolAR
         private Vector3 curPos = Vector3.zero;
         private Vector3 prevPos = Vector3.zero;
 
-        private long prevTimestamp = -1;
-        private Quaternion currentRotation = Quaternion.identity;
-
         private float rotLerpTime = 0;
         private Quaternion curRot = Quaternion.identity;
         private Quaternion prevRot = Quaternion.identity;
         private float lerpSpeed = 4;
 
-        ////private static Vector3 GetAngleDifferences(Quaternion rot1, Quaternion rot2)
-        ////{
-        ////    return new Vector3(
-        ////        GetAngle(rot1.eulerAngles.x - rot2.eulerAngles.x),
-        ////        GetAngle(rot1.eulerAngles.y - rot2.eulerAngles.y),
-        ////        GetAngle(rot1.eulerAngles.z - rot2.eulerAngles.z));
-        ////}
-
-        ////private static float GetAngle(float angle)
-        ////{
-        ////    float res = Mathf.Abs(angle);
-        ////    return res <= 180 ? res : 360 - res;
-        ////}
-
-        private static float ClampAngle(float angle)
+        private void GetPhysicalCameraFrame()
         {
-            float returnAngle = angle;
+            m_webCamTexture.GetPixels32(data);
+            //data = GetScaledTexture().GetPixels32();
 
-            if (angle < 0f)
-                returnAngle = (angle + (360f * ((angle / 360f) + 1)));
+            if (Screen.orientation == ScreenOrientation.LandscapeRight)
+            {
+                int lengthMinusOne = data.Length - 1;
+                for (int i = 0; i < data.Length; i++)
+                {
+                    m_vidframe_byte[3 * i] = data[lengthMinusOne - i].b;
+                    m_vidframe_byte[3 * i + 1] = data[lengthMinusOne - i].g;
+                    m_vidframe_byte[3 * i + 2] = data[lengthMinusOne - i].r;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < data.Length; i++)
+                {
+                    m_vidframe_byte[3 * i] = data[i].b;
+                    m_vidframe_byte[3 * i + 1] = data[i].g;
+                    m_vidframe_byte[3 * i + 2] = data[i].r;
+                }
+            }
 
-            else if (angle > 360f)
-                returnAngle = (angle - (360f * (angle / 360f)));
-
-            else if (returnAngle == 360) //Never use 360, only go from 0 to 359
-                returnAngle = 0;
-
-            return returnAngle;
+            sourceTexture = Marshal.UnsafeAddrOfPinnedArrayElement(m_vidframe_byte, 0);
+            m_pipelineManager.loadSourceImage(sourceTexture, width, height);
         }
 
         void Update()
@@ -162,30 +159,7 @@ namespace SolAR
                 {
                     if (m_Unity_Webcam)
                     {
-                        m_webCamTexture.GetPixels32(data);
-                        //data = GetScaledTexture().GetPixels32();
-
-                        if (Screen.orientation == ScreenOrientation.LandscapeRight)
-                        {
-                            for (int i = 0; i < data.Length; i++)
-                            {
-                                m_vidframe_byte[3 * i] = data[data.Length - 1 - i].b;
-                                m_vidframe_byte[3 * i + 1] = data[data.Length - 1 - i].g;
-                                m_vidframe_byte[3 * i + 2] = data[data.Length - 1 - i].r;
-                            }
-                        }
-                        else
-                        {
-                            for (int i = 0; i < data.Length; i++)
-                            {
-                                m_vidframe_byte[3 * i] = data[i].b;
-                                m_vidframe_byte[3 * i + 1] = data[i].g;
-                                m_vidframe_byte[3 * i + 2] = data[i].r;
-                            }
-                        }
-
-                        sourceTexture = Marshal.UnsafeAddrOfPinnedArrayElement(m_vidframe_byte, 0);
-                        m_pipelineManager.loadSourceImage(sourceTexture, width, height);
+                        GetPhysicalCameraFrame();
                     }
                     Transform3Df pose = new Transform3Df();
 
@@ -221,8 +195,6 @@ namespace SolAR
                         var rotation = Quaternion.LookRotation(forward, -up);
                         var position = -new Vector3(unityCameraPose.m03, unityCameraPose.m13, unityCameraPose.m23);
 
-                        position = Vector3.Lerp(Vector3.zero, position, 0.96f);
-
                         m_PrevSolARObj.localPosition = position;
                         m_RotationControl.localRotation = rotation;
                         var prevParent = m_PrevSolARObj.parent;
@@ -231,53 +203,23 @@ namespace SolAR
                         m_PrevSolARObj.parent = prevParent;
 
 
-                        m_PrevSolARObj.rotation = Quaternion.Inverse(rotation);
-                        //m_PrevSolARObj.Rotate(new Vector3(-90, 0, 0), Space.Self);
-                        //m_PrevSolARObj.Rotate(new Vector3(0, -180, 0), Space.Self);
-
-                        //m_PrevSolARObj.Rotate(Camera.main.transform.eulerAngles, Space.Self);
-                        //m_PrevSolARObj.Rotate(new Vector3(0, 0, -Camera.main.transform.rotation.eulerAngles.y), Space.Self);
-                        //m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Vector3.up, Camera.main.transform.rotation.eulerAngles.y);
-                        m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.right, Camera.main.transform.rotation.eulerAngles.x);
-                        m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.up, Camera.main.transform.rotation.eulerAngles.y);
-                        //m_PrevSolARObj.RotateAround(m_PrevSolARObj.position, Camera.main.transform.forward, Camera.main.transform.rotation.eulerAngles.z);
-                        //m_PrevSolARObj.Rotate(new Vector3(0, -Camera.main.transform.rotation.eulerAngles.x, 0), Space.Self);
-
-                        ////if (Screen.orientation == ScreenOrientation.LandscapeRight)
-                        ////{
-                        ////    m_PrevSolARObj.rotation = Quaternion.Inverse(m_PrevSolARObj.rotation);
-                        ////}
-
-                        ////if (Vector3.Angle(Vector3.up, Camera.main.transform.up) > 90)
-                        ////{
-                        ////    m_PrevSolARObj.rotation = m_SolARObj.rotation;
-                        ////}
+                        m_PrevSolARObj.localRotation = Quaternion.Inverse(rotation);
+                        m_PrevSolARObj.Rotate(new Vector3(-90, 0, 0), Space.Self);
 
                         if (Screen.orientation == ScreenOrientation.LandscapeRight)
                         {
-                            m_PrevSolARObj.position -= new Vector3(cameraXShift, 0, 0);
+                            m_PrevSolARObj.localPosition -= new Vector3(cameraXShift, 0, 0);
                         }
                         else
                         {
-                            m_PrevSolARObj.position += new Vector3(cameraXShift, 0, 0);
+                            m_PrevSolARObj.localPosition += new Vector3(cameraXShift, 0, 0);
                         }
 
-
-                        if (socketSignalerScript.gyroDataTimestamp == 0)
+                        var rotDist = Quaternion.Angle(prevRot, m_PrevSolARObj.rotation);
+                        if (rotDist >= 10)
                         {
-                            var rotDist = Quaternion.Angle(m_SolARObj.rotation, m_PrevSolARObj.rotation);
-                            float rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
-                            if ((rotDist >= 10) && rotLerpStatus >= 1)
-                            {
-                                //Debug.Log("Rot dist: " + rotDist);
-                                ////Debug.Log("angle: " + angleDifferences);
-                                //m_SolARObj.rotation = m_PrevSolARObj.rotation;
-                                rotLerpTime = Time.time;
-                                curRot = m_SolARObj.rotation;
-                                prevRot = m_PrevSolARObj.rotation;
-                            }
-                            rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
-                            m_SolARObj.rotation = Quaternion.Lerp(curRot, prevRot, rotLerpStatus);
+                            prevRot = m_PrevSolARObj.rotation;
+                            socketSignalerScript.ResetGyroInverse();
                         }
 
                         var posDist = Vector3.Distance(m_SolARObj.position, m_PrevSolARObj.position);
@@ -294,16 +236,30 @@ namespace SolAR
 
                         distLerpStatus = (Time.time - distLerpTime) * lerpSpeed;
                         m_SolARObj.position = Vector3.Lerp(curPos, prevPos, distLerpStatus);
-                        
+
                     }
                 }
             }
+
+            SetFusedRotation();
         }
 
-        public IEnumerator SetGyroRotationCoroutine()
+        private Quaternion realRotation = Quaternion.identity;
+
+        private void SetFusedRotation()
         {
-            m_SolARObj.rotation = socketSignalerScript.gyroQuaternion;
-            yield return null;
+            var realCurrentRotation = prevRot * socketSignalerScript.gyroQuaternion;
+            float rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
+            if (rotLerpStatus >= 1)
+            {
+                rotLerpTime = Time.time;
+                curRot = m_SolARObj.rotation;
+                realRotation = realCurrentRotation;
+            }
+
+            rotLerpStatus = (Time.time - rotLerpTime) * lerpSpeed;
+
+            m_SolARObj.rotation = Quaternion.Lerp(curRot, realRotation, rotLerpStatus);
         }
 
         public void Init()
@@ -350,18 +306,7 @@ namespace SolAR
                 data = new Color32[width * height];
                 m_vidframe_byte = new byte[width * height * 3];
 
-                //data = GetScaledTexture().GetPixels32();
-                m_webCamTexture.GetPixels32(data);
-
-                for (int i = 0; i < data.Length; i++)
-                {
-                    m_vidframe_byte[3 * i] = data[i].b;
-                    m_vidframe_byte[3 * i + 1] = data[i].g;
-                    m_vidframe_byte[3 * i + 2] = data[i].r;
-                }
-
-                sourceTexture = Marshal.UnsafeAddrOfPinnedArrayElement(m_vidframe_byte, 0);
-                m_pipelineManager.loadSourceImage(sourceTexture, width, height);
+                GetPhysicalCameraFrame();
             }
             else
             {
@@ -389,8 +334,8 @@ namespace SolAR
         void SendParametersToCameraProjectionMatrix()
         {
             Matrix4x4 projectionMatrix = new Matrix4x4();
-            float near = Camera.main.nearClipPlane;
-            float far = Camera.main.farClipPlane;
+            float near = mainCamera.nearClipPlane;
+            float far = mainCamera.farClipPlane;
 
             Vector4 row0 = new Vector4(2.0f * focalX / width, 0, 1.0f - 2.0f * centerX / width, 0);
             Vector4 row1 = new Vector4(0, 2.0f * focalY / height, 2.0f * centerY / height - 1.0f, 0);
@@ -402,8 +347,8 @@ namespace SolAR
             projectionMatrix.SetRow(2, row2);
             projectionMatrix.SetRow(3, row3);
 
-            Camera.main.fieldOfView = (Mathf.Rad2Deg * 2 * Mathf.Atan(width / (2 * focalX))) - 10;
-            Camera.main.projectionMatrix = projectionMatrix;
+            mainCamera.fieldOfView = (Mathf.Rad2Deg * 2 * Mathf.Atan(width / (2 * focalX))) - 10;
+            mainCamera.projectionMatrix = projectionMatrix;
         }
     }
 

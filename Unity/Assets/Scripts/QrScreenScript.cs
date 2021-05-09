@@ -18,10 +18,10 @@ public class QrScreenScript : MonoBehaviour
 
 	private Coroutine wrongCodeCoroutine;
 
-	private const string QR_SCAN_HINT = "Scan QR Code with server IP in second smartphone";
+	private const string QR_SCAN_HINT = "Scan QR Code with server address in second smartphone";
 	private const string WRONG_QR_HINT = "Wrong QR Code!";
 
-	private const string QR_CODE_KEY = "SCREEN_CAPTURE_IP=";
+	private const string QR_CODE_KEY = "SCREEN_CAPTURE_ADDRESS=";
 
 	void OnEnable()
 	{
@@ -38,17 +38,25 @@ public class QrScreenScript : MonoBehaviour
 
 	private void QrCodeManagerScript_QrCodeScanned(string text)
 	{
-		if (!text.Contains(QR_CODE_KEY))
+		try
 		{
-			NotifyWrongQrCode();
-			return;
-		}
+			if (!text.Contains(QR_CODE_KEY))
+			{
+				NotifyWrongQrCode();
+				return;
+			}
 
-		gameObject.SetActive(false);
-		webRtcSignaler.signalingServerIp = text.Split('=')[1];
-		webRtcSignaler.Connect();
-		findDeviceCanvas.SetActive(true);
-		solarPipelineObject.isScanning = true;
+			gameObject.SetActive(false);
+			string[] ipPort = text.Split('=')[1].Split(':');
+			webRtcSignaler.signalingServerIp = ipPort[0];
+			webRtcSignaler.signalingServerPort = ipPort[1];
+			webRtcSignaler.Connect();
+			findDeviceCanvas.SetActive(true);
+			solarPipelineObject.isScanning = true;
+		}
+        catch
+        {
+        }
 	}
 
 	private void NotifyWrongQrCode()
