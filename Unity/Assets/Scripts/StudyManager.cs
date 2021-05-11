@@ -15,12 +15,13 @@ public class StudyManager : MonoBehaviour
     public Transform cameraOffset;
     public Camera mainCam;
 
-    public GameObject indirectHint1;
-    public GameObject indirectHint2;
+    public GameObject indirectHint;
 
     public static StudyManager Instance;
 
     public Conditions condition = Conditions.Direct;
+
+    private Renderer screenRenderer;
 
     public enum Conditions
     {
@@ -33,6 +34,7 @@ public class StudyManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        screenRenderer = screen.GetComponent<Renderer>();
     }
 
     private IEnumerator SetContiditonCoroutine(Conditions condition)
@@ -42,9 +44,6 @@ public class StudyManager : MonoBehaviour
             case Conditions.Direct:
             case Conditions.Warped:
             case Conditions.UnWarped:
-                indirectHint1.SetActive(false);
-                indirectHint2.SetActive(true);
-
                 screen.parent = phoneScreen;
                 screen.localPosition = Vector3.zero;
                 screen.localRotation = Quaternion.identity;
@@ -53,7 +52,7 @@ public class StudyManager : MonoBehaviour
             case Conditions.Indirect:
                 screen.parent = screenPlace;
                 screen.localPosition = Vector3.zero;
-                screen.localRotation = Quaternion.identity;
+                screen.localEulerAngles = new Vector3(0, 180, 0);
 
                 if (this.condition != condition)
                 {
@@ -72,13 +71,7 @@ public class StudyManager : MonoBehaviour
 
     private void SetIndirectRot()
     {
-        //var camForward = new Vector3(mainCam.transform.forward.x, 0, mainCam.transform.forward.z).normalized;
-        //screenPlace.localPosition = new Vector3(camForward.x, -0.1f, camForward.z) * 0.42f;
-        screenPlace.localRotation = mainCam.transform.localRotation;
-        //screenPlace.localRotation =
-        //    Quaternion.LookRotation(new Vector3(mainCam.transform.forward.x, 0, mainCam.transform.forward.z),
-        //    mainCam.transform.up);
-        //screenPlace.localRotation = Quaternion.Euler(screenPlace.eulerAngles.x, screenPlace.eulerAngles.y, mainCam.transform.eulerAngles.z);
+        screenPlace.LookAt(mainCam.transform);
     }
 
     private void Update()
@@ -91,18 +84,19 @@ public class StudyManager : MonoBehaviour
         if (condition == Conditions.Indirect)
         {
             SetIndirectRot();
-            if ((indirectHint1.activeSelf || indirectHint2.activeSelf) && IsShownOnTheScreen(screen.position))
-            {
-                indirectHint1.SetActive(false);
-                indirectHint2.SetActive(false);
-            }
+            indirectHint.SetActive(!IsShownOnTheScreen());
+            //Debug.Log(mainCam.fieldOfView + " " + mainCam.farClipPlane + " " + mainCam.aspect + " " + mainCam.focalLength
+            //    + " " + mainCam.nearClipPlane + " " + mainCam.scaledPixelWidth + " " + mainCam.scaledPixelHeight);
         }
     }
 
-    private bool IsShownOnTheScreen(Vector3 worldPos)
+    private bool IsShownOnTheScreen()
     {
-        var pos = mainCam.WorldToViewportPoint(worldPos);
-        return pos.z >= 0 && pos.x >= 0 && pos.x <= 1 && pos.y >= 0 && pos.y <= 1;
+        //var pos = mainCam.WorldToViewportPoint(screen.position);
+        //Debug.Log(pos);
+        //return pos.z >= 0 && pos.x >= 0 && pos.x <= 1 && pos.y >= 0 && pos.y <= 1;
+        var planes = GeometryUtility.CalculateFrustumPlanes(mainCam);
+        return GeometryUtility.TestPlanesAABB(planes, screenRenderer.bounds);
     }
 
     public void SetContiditon(Conditions condition)
