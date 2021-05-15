@@ -57,8 +57,8 @@ public class StudyManager : MonoBehaviour {
 
 	private void InitLogs()
     {
-		logDataGeneral = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, StartTime, VRHMD, ErrorThreshold, SelectedControlMethod, SelectedConfirmationMethod, DwellTime, Timeout, ScaleFactor, MovementTime, ErrorRate, Throughput";
-		logDataDetail = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, SequenceNumber, IoD, W, A, IoDe, We, Ae, StartTime, VRHMD, ErrorThreshold, SelectedControlMethod, SelectedConfirmationMethod, DwellTime, Timeout, ScaleFactor, MovementTime, ErrorRate, Throughput";
+		logDataGeneral = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, StartTime, VRHMD, ErrorThreshold, SelectedControlMethod, SelectedConfirmationMethod, DwellTime, Timeout, ScaleFactor, MovementTime, ErrorRate, Throughput, RotationSumDegree";
+		logDataDetail = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, SequenceNumber, IoD, W, A, IoDe, We, Ae, StartTime, VRHMD, ErrorThreshold, SelectedControlMethod, SelectedConfirmationMethod, DwellTime, Timeout, ScaleFactor, MovementTime, ErrorRate, Throughput, RotationSumDegree";
 		logDataTrials = "ParticipantCode, BlockCode, StudyNumber, ConditionCode, ScaleFactor, SequenceNumber, TrialNumber, TargetAngle, StartTime, TotalCursorMovement, TimeToActivate, TimeToFixate, TargetCenterErrorX, TargetCenterErrorY, TimedOut, Error";
 		studyStartTime = DateTime.Now.ToString("yyyy_MM_dd hh_mm_ss");
 	}
@@ -75,7 +75,7 @@ public class StudyManager : MonoBehaviour {
 			testBlock.ErrorThreshold.ToString(), testBlock.SelectedControlMethod.ToString(),
 			testBlock.SelectedConfirmationMethod.ToString(),
 			testBlock.DwellTime.ToString(), testBlock.Timeout.ToString(), testBlock.MouseSensivity.ToString(),
-			testBlock.MovementTime.ToString(), testBlock.ErrorRate.ToString(), testBlock.Throughput.ToString()});
+			testBlock.MovementTime.ToString(), testBlock.ErrorRate.ToString(), testBlock.Throughput.ToString(), testBlock.MeanRotationSumDegree.ToString()});
 	}
 
 	public void AddLogDetail(TestBlock testBlock, int sequenceIndex)
@@ -93,7 +93,7 @@ public class StudyManager : MonoBehaviour {
 			testSequence.StartTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), "Cardboard", testBlock.ErrorThreshold.ToString(), 
 			testBlock.SelectedControlMethod.ToString(), testBlock.SelectedConfirmationMethod.ToString(),
 			testBlock.DwellTime.ToString(), testBlock.Timeout.ToString(), testBlock.MouseSensivity.ToString(),
-			testSequence.MovementTime.ToString(), testSequence.ErrorRate.ToString(), testSequence.Throughput.ToString()});
+			testSequence.MovementTime.ToString(), testSequence.ErrorRate.ToString(), testSequence.Throughput.ToString(), testSequence.RotationSumDegree.ToString()});
 	}
 
 	public void AddLogTrial(TestBlock testBlock, int sequenceIndex, int trialNumber)
@@ -133,7 +133,17 @@ public class StudyManager : MonoBehaviour {
 
 	private const int Study1BlockCount = 6; // 2;
 
-	private readonly float[] ScaleFactors = new float[] { 1f, 1.2f, 1.4f, 1.6f, 1.8f, 2.0f, 2.2f, 2.4f };
+	private readonly float[,] ScaleFactors = new float[,]
+	{
+		{ 1f, 1.2f, 2.4f, 1.4f, 2.2f, 1.6f, 2.0f, 1.8f },
+		{ 1.2f, 1.4f, 1f, 1.6f, 2.4f, 1.8f, 2.2f, 2.0f },
+		{ 1.4f, 1.6f, 1.2f, 1.8f, 1f, 2.0f, 2.4f, 2.2f },
+		{ 1.6f, 1.8f, 1.4f, 2.0f, 1.2f, 2.2f, 1f, 2.4f },
+		{ 1.8f, 2.0f, 1.6f, 2.2f, 1.4f, 2.4f, 1.2f, 1f },
+		{ 2.0f, 2.2f, 1.8f, 2.4f, 1.6f, 1f, 1.4f, 1.2f },
+		{ 2.2f, 2.4f, 2.0f, 1f, 1.8f, 1.2f, 1.6f, 1.4f },
+		{ 2.4f, 1f, 2.2f, 1.2f, 2.0f, 1.4f, 1.8f, 1.6f },
+	};
 
 	public const string TargetAmplitudesStudy1 =	"115 145 295 400 265 345 220 350 440 445";
 	public const string TargetWidthsStudy1 =		"100 100 160 160 80 80 40 50 50 40";
@@ -184,14 +194,14 @@ public class StudyManager : MonoBehaviour {
 				break;
 			case StudyEnum.Study2:
 				Blocks = new List<StudyBlock>();
-				var study2BlockCount = ScaleFactors.Length;
+				var study2BlockCount = ScaleFactors.GetLength(1);
 				for (int i = 0; i < study2BlockCount; i++)
-                {
+				{
 					Blocks.Add(new StudyBlock
 					{
 						Id = "B" + blockIdInt,
 						Condition = Conditions.Warped,
-						ScaleFactor = ScaleFactors[i]
+						ScaleFactor = ScaleFactors[participantIdInt % ScaleFactors.GetLength(0), i]
 					});
 					blockIdInt++;
 				}
@@ -300,7 +310,7 @@ public class StudyManager : MonoBehaviour {
 				break;
         }
 
-		string outputTextPath = Application.persistentDataPath + "/" + "VRPhone_DATA_" + studyStartTime + "_" + ParticipantId + detail + ".csv";
+		string outputTextPath = Application.persistentDataPath + "/" + "VRPhone_DATA_" + studyStartTime + "_" + ParticipantId + "_" + StudyNumber + detail + ".csv";
 		File.WriteAllText(outputTextPath, data);
 		return outputTextPath;
 	}

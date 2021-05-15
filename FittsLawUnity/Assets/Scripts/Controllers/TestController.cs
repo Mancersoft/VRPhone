@@ -73,6 +73,9 @@ public class TestController : MonoBehaviour
     }
 
     void Start () {
+#if UNITY_ANDROID
+        Input.gyro.enabled = true;
+#endif
         _dbController = DBController.Instance;
         _pupilGazeTracker = FindObjectOfType<PupilGazeTracker>();
         //If data is stored from TestLoader scene, use that
@@ -139,6 +142,8 @@ public class TestController : MonoBehaviour
     private float doubleClickTimeLimit = 0.5f;
     private float variancePosition = 10;
 
+    private Quaternion oldOrientation = Quaternion.identity;
+
     // Update is called once per frame
     private IEnumerator InputListener()
     {
@@ -200,6 +205,16 @@ public class TestController : MonoBehaviour
         if (_verificationRunning)
             VerificationStep();
         if (!IsRunning || _firstTarget) return;
+
+#if UNITY_ANDROID
+        if (oldOrientation == Quaternion.identity)
+        {
+            oldOrientation = Input.gyro.attitude;
+        }
+
+        TestBlockData.Sequences[_sequenceIndex].RotationSumDegree += Mathf.Abs(Quaternion.Angle(oldOrientation, Input.gyro.attitude));
+        oldOrientation = Input.gyro.attitude;
+#endif
 
         if (_logData)
         {
@@ -346,6 +361,9 @@ public class TestController : MonoBehaviour
     {
         if (!IsRunning) return;
         IsRunning = false;
+
+        oldOrientation = Quaternion.identity;
+
         Debug.Log("----Test Sequence Ended----");
         Debug.Log("SequenceIndex: " + _sequenceIndex + "; SequecneCount: " + TestBlockData.Sequences.Count);
         if (_sequenceIndex >= TestBlockData.Sequences.Count - 1)
@@ -432,6 +450,8 @@ public class TestController : MonoBehaviour
         TestBlockData.CalculateMeanMovementTime();
         TestBlockData.CalculateErrorRate();
 
+
+        TestBlockData.MeanRotationSumDegree = TestBlockData.Sequences.Average(el => el.RotationSumDegree);
         //if (_useDB)
         //{
         //    SaveToDb();

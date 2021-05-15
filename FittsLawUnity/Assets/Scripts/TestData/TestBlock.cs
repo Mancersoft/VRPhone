@@ -48,6 +48,8 @@ public class TestBlock {
     public double ErrorRate;
     public double Throughput;
 
+    public double MeanRotationSumDegree;
+
     public List<TestSequence> Sequences;
     public List<TestVerification> Verifications;
     public VRHMD SelectedVRHMD;

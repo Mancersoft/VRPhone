@@ -42,7 +42,6 @@ public class StudyManager : MonoBehaviour
         switch (condition)
         {
             case Conditions.Direct:
-            case Conditions.Warped:
             case Conditions.UnWarped:
                 screen.parent = phoneScreen;
                 screen.localPosition = Vector3.zero;
@@ -50,6 +49,7 @@ public class StudyManager : MonoBehaviour
                 screen.gameObject.layer = LayerMask.NameToLayer("Default");
                 break;
             case Conditions.Indirect:
+            case Conditions.Warped:
                 screen.parent = screenPlace;
                 screen.localPosition = Vector3.zero;
                 screen.localEulerAngles = new Vector3(0, 180, 0);

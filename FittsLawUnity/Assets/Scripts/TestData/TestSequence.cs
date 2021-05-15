@@ -30,6 +30,7 @@ public class TestSequence {
     public double MovementTime;
     public double ErrorRate;
     public double Throughput;
+    public double RotationSumDegree;
 
     /// <summary>
     /// TestSequence constructor. 
