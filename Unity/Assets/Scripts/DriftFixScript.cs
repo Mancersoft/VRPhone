@@ -12,6 +12,7 @@ public class DriftFixScript : MonoBehaviour
     public void Init()
     {
         Input.compass.enabled = true;
+        Input.gyro.enabled = true;
         StartCoroutine(StartShiftCoroutine());
     }
 
@@ -34,6 +35,31 @@ public class DriftFixScript : MonoBehaviour
         }
 
         float shiftAngle = Mathf.DeltaAngle(camTransform.eulerAngles.y, Input.compass.magneticHeading - startShift);
+
+        var currPosition = transform.position;
+        camTransform.parent = null;
+        transform.position = camTransform.position;
+        camTransform.parent = transform;
+
         transform.Rotate(new Vector3(0, shiftAngle * Time.deltaTime, 0), Space.Self);
+
+        camTransform.parent = null;
+        transform.position = currPosition;
+        camTransform.parent = transform;
+
+
+        var currRotation = transform.localRotation;
+        camTransform.parent = null;
+        transform.rotation = Quaternion.identity;
+        camTransform.parent = transform;
+
+        transform.localPosition = new Vector3(
+            -camTransform.localPosition.x,
+            -camTransform.localPosition.y + 1.5f,
+            -camTransform.localPosition.z);
+
+        camTransform.parent = null;
+        transform.rotation = currRotation;
+        camTransform.parent = transform;
     }
 }

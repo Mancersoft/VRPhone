@@ -13,15 +13,11 @@ public class StudyManager : MonoBehaviour
     public Transform phoneScreen;
     public Transform phoneModel;
     public Transform cameraOffset;
-    public Camera mainCam;
-
-    public GameObject indirectHint;
+    public Transform camTransform;
 
     public static StudyManager Instance;
 
     public Conditions condition = Conditions.Direct;
-
-    private Renderer screenRenderer;
 
     public enum Conditions
     {
@@ -34,7 +30,6 @@ public class StudyManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        screenRenderer = screen.GetComponent<Renderer>();
     }
 
     private IEnumerator SetContiditonCoroutine(Conditions condition)
@@ -56,8 +51,7 @@ public class StudyManager : MonoBehaviour
 
                 if (this.condition != condition)
                 {
-                    var camForward = new Vector3(mainCam.transform.forward.x, 0, mainCam.transform.forward.z).normalized;
-                    screenPlace.localPosition = new Vector3(camForward.x, -0.1f, camForward.z) * 0.42f;
+                    SetIndirectPos();
                     SetIndirectRot();
                 }
 
@@ -71,7 +65,15 @@ public class StudyManager : MonoBehaviour
 
     private void SetIndirectRot()
     {
-        screenPlace.LookAt(mainCam.transform);
+        screenPlace.LookAt(camTransform);
+    }
+
+    public void SetIndirectPos()
+    {
+        screenPlace.localPosition = cameraOffset.localPosition
+            + new Vector3(0, -0.1f, 0.3f);
+        //var camForward = new Vector3(camTransform.forward.x, 0, camTransform.forward.z).normalized;
+        //screenPlace.localPosition = new Vector3(0, 1.5f, 0) + new Vector3(camForward.x, -0.1f, camForward.z) * 0.4f;
     }
 
     private void Update()
@@ -81,22 +83,10 @@ public class StudyManager : MonoBehaviour
             SetContiditon(condition == Conditions.Direct ? Conditions.Indirect : Conditions.Direct);
         }
 
-        if (condition == Conditions.Indirect)
+        if (condition == Conditions.Indirect || condition == Conditions.Warped)
         {
             SetIndirectRot();
-            indirectHint.SetActive(!IsShownOnTheScreen());
-            //Debug.Log(mainCam.fieldOfView + " " + mainCam.farClipPlane + " " + mainCam.aspect + " " + mainCam.focalLength
-            //    + " " + mainCam.nearClipPlane + " " + mainCam.scaledPixelWidth + " " + mainCam.scaledPixelHeight);
         }
-    }
-
-    private bool IsShownOnTheScreen()
-    {
-        //var pos = mainCam.WorldToViewportPoint(screen.position);
-        //Debug.Log(pos);
-        //return pos.z >= 0 && pos.x >= 0 && pos.x <= 1 && pos.y >= 0 && pos.y <= 1;
-        var planes = GeometryUtility.CalculateFrustumPlanes(mainCam);
-        return GeometryUtility.TestPlanesAABB(planes, screenRenderer.bounds);
     }
 
     public void SetContiditon(Conditions condition)

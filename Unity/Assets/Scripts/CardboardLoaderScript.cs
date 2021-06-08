@@ -22,6 +22,6 @@ public class CardboardLoaderScript : MonoBehaviour
         Screen.orientation = ScreenOrientation.AutoRotation;
         Screen.autorotateToPortrait = false;
         Screen.autorotateToPortraitUpsideDown = false;
-        driftFixScript.Init();
+        driftFixScript?.Init();
     }
 }
